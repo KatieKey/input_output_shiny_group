@@ -1,8 +1,7 @@
 ---
-title: "README"
-author: "Katie Key"
-date: "October 25, 2017"
-output: html_document
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
