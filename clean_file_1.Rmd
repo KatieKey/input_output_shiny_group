@@ -1,0 +1,71 @@
+---
+title: 'Data File #1 Cleaning'
+author: "Elle Holbrook"
+date: "October 30, 2017"
+output: html_document
+---
+
+```{r setup, include = FALSE, echo = FALSE}
+library(tidyverse)
+library(stringr)
+library(readxl)
+```
+
+```{r loading the data}
+xl <- read_excel("data/DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALYSIS.xlsx")
+data1 <- xl[2:12, ]
+data2 <- xl[17:26, ]
+```
+
+```{r cleaning the data}
+data1 <- data1 %>% 
+  rename(drug_name = MeanCmaxEfficacy,
+         dose = X__1,
+         PLA = X__2,
+         ULU = X__3,
+         RIM = X__4,
+         OCS = X__5,
+         ICS = X__6,
+         SLU = X__7,
+         SLE = X__8,
+         ELU = X__9,
+         ESP = X__10,
+         cLogP = X__11,
+         huPPB = X__12,
+         muPPB = X__13,
+         MIC_Erdman = X__14,
+         MICserumErd = X__15,
+         MIC_Rv = X__16,
+         Caseum_binding = X__17,
+         MacUptake = X__18) %>% 
+  mutate(level = "Cmax")
+
+data2 <- data2 %>% 
+  rename(drug_name = MeanCmaxEfficacy,
+         dose = X__1,
+         PLA = X__2,
+         ULU = X__3,
+         RIM = X__4,
+         OCS = X__5,
+         ICS = X__6,
+         SLU = X__7,
+         SLE = X__8,
+         ELU = X__9,
+         ESP = X__10,
+         cLogP = X__11,
+         huPPB = X__12,
+         muPPB = X__13,
+         MIC_Erdman = X__14,
+         MICserumErd = X__15,
+         MIC_Rv = X__16,
+         Caseum_binding = X__17,
+         MacUptake = X__18) %>% 
+  mutate(level = "Trough")
+```
+
+```{r merging the data}
+joined <- full_join(data1, data2, by = c("drug_name", "dose", "level")) ##need to use something besides full_join
+
+##also need to split dose column in to dose_ug and dose_int
+```
+
