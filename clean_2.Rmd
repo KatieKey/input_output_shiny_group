@@ -1,0 +1,36 @@
+---
+title: "clean_2"
+author: "Lizette van Zyl"
+date: "October 31, 2017"
+output: word_document
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(stringr)
+
+setwd("~/Masters/R_Programming_Fall_2017/input_output_shiny_group")
+```
+
+```{r}
+clean_2_lung <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALYSIS.xlsx",
+                     range = "PD!A2:K9") %>%
+                dplyr::select(-2) %>%
+                tidyr::gather("mouse_id", "lung_efficacy", 3:10) %>%
+                dplyr::rename(drug = X__1, dose_info = X__3) %>%
+                tidyr::separate("dose_info", c("dose", "dosing_interval"), sep = -4)
+
+clean_2_spleen <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALYSIS.xlsx",
+                     range = "PD!A13:K20") %>%
+                  dplyr::select(-2) %>%
+                  tidyr::gather("mouse_id", "spleen_efficacy", 3:10) %>%
+                  dplyr::rename(drug = X__1, dose_info = X__3) %>%
+                  tidyr::separate("dose_info", c("dose", "dosing_interval"), sep = -4)
+
+clean_2 <- dplyr::full_join(clean_2_lung, clean_2_spleen,
+                            by = c("drug", "dose", "dosing_interval", "mouse_id"))
+```
+
+
