@@ -56,4 +56,3 @@ is.data.frame(efficacy)
 write_csv(efficacy, "CSV_Files/efficacy_summary.csv")
 ```
 
-BLAH
