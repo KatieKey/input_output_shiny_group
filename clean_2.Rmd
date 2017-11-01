@@ -38,6 +38,7 @@ clean_2 <- dplyr::full_join(clean_2_lung, clean_2_spleen,
 
 write_csv(clean_2_lung, path = paste0(getwd(), "/CSV_Files/clean_2_lung.csv"))
 write_csv(clean_2_spleen, path = paste0(getwd(), "/CSV_Files/clean_2_spleen.csv"))
+write_csv(clean_2, path = paste0(getwd(), "/CSV_Files/clean_2_combined.csv"))
 
 ```
 
