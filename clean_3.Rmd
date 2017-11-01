@@ -1,0 +1,17 @@
+---
+title: "Clean Data File 3"
+author: "Brian Kim"
+date: "November 1, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stringr)
+library(readxl)
+library(ggplot2)
+setwd("C:/Users/bkim7/R/input_output_shiny_group")
+```
+
+
