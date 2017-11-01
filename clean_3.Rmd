@@ -28,5 +28,11 @@ clean_3_trough <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALY
     mutate(dosage = str_extract(dose, "[0-9]+"),
           dose_interval = str_extract(dose, "[A-Z]+")) %>%
   select(-dose)
+```
+
+Now I am combining the two dataframes clean_3_cmax and clean_3_trough into a single dataframe
+```{r combine trough and cmax}
+clean_3 <- full_join(clean_3_cmax, clean_3_trough)
+
 
 ```
