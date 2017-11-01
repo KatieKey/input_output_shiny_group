@@ -20,17 +20,25 @@ clean_2_lung <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALYSI
                 dplyr::select(-2) %>%
                 tidyr::gather("mouse_id", "lung_efficacy", 3:10) %>%
                 dplyr::rename(drug = X__1, dose_info = X__3) %>%
-                tidyr::separate("dose_info", c("dose", "dosing_interval"), sep = -4)
+                dplyr::mutate(dosage = str_extract(dose_info, "[0-9]+"),
+                                dose_interval = str_extract(dose_info, "[A-Z]+")) %>%
+                dplyr::select(-dose_info)
 
 clean_2_spleen <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALYSIS.xlsx",
                      range = "PD!A13:K20") %>%
                   dplyr::select(-2) %>%
                   tidyr::gather("mouse_id", "spleen_efficacy", 3:10) %>%
                   dplyr::rename(drug = X__1, dose_info = X__3) %>%
-                  tidyr::separate("dose_info", c("dose", "dosing_interval"), sep = -4)
+                  dplyr::mutate(dosage = str_extract(dose_info, "[0-9]+"),
+                                dose_interval = str_extract(dose_info, "[A-Z]+")) %>%
+                  dplyr::select(-dose_info)
 
 clean_2 <- dplyr::full_join(clean_2_lung, clean_2_spleen,
                             by = c("drug", "dose", "dosing_interval", "mouse_id"))
+
+write_csv(clean_2_lung, path = paste0(getwd(), "/clean_2_lung.csv"))
+write_csv(clean_2_spleen, path = paste0(getwd(), "/clean_2_spleen.csv"))
+
 ```
 
 
