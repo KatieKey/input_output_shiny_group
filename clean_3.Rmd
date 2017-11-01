@@ -33,6 +33,7 @@ clean_3_trough <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALY
 Now I am combining the two dataframes clean_3_cmax and clean_3_trough into a single dataframe
 ```{r combine trough and cmax}
 clean_3 <- full_join(clean_3_cmax, clean_3_trough)
-
+#write dataframe clean_3 to a csv file
+write_csv(clean_3, path = paste0("C:/Users/bkim7/R/input_output_shiny_group/CSV_Files/clean_3.csv"))
 
 ```
