@@ -48,9 +48,11 @@ spleen_eff <- spleen_eff %>%
 
 ```{r combining the data frames}
 efficacy <- bind_rows(lung_eff, spleen_eff)
+efficacy <- as.data.frame(efficacy)
+is.data.frame(efficacy)
 ```
 
 ```{r write example csv file}
-write_csv("")
+write_csv(efficacy, "CSV_Files/efficacy_summary.csv")
 ```
 
