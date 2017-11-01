@@ -14,4 +14,19 @@ library(ggplot2)
 setwd("C:/Users/bkim7/R/input_output_shiny_group")
 ```
 
+```{r load dataframe}
+clean_3_cmax <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALYSIS.xlsx",
+                  range = "PK!A3:J20") %>%
+  mutate(dosage = str_extract(dose, "[0-9]+"),
+          dose_interval = str_extract(dose, "[A-Z]+")) %>%
+  select(-dose) %>%
+  rename(mouse_number = `mouse number`)
+  
+clean_3_trough <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALYSIS.xlsx",
+                  range = "PK!A24:J38") %>%
+  rename(drug = X__1, dose = X__2, mouse_number = X__3) %>%
+    mutate(dosage = str_extract(dose, "[0-9]+"),
+          dose_interval = str_extract(dose, "[A-Z]+")) %>%
+  select(-dose)
 
+```
