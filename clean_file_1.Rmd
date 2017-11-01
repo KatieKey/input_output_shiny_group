@@ -18,16 +18,39 @@ metadata <- read_excel("data/DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALY
 ```
 
 ```{r cleaning the data}
-lung_eff %>% 
+lung_eff <- lung_eff %>% 
   rename(drug = X__1) %>% 
   mutate(level = "Cmax",
-         dosage = str_extract(Dose, "[0-90-90-9]"),
-         dose_int = str_extract(Dose, "[A-ZA-ZA-Z]")) %>% ##what regular expressions to use to pull out all numbers and all letters? (not just one)
+         dosage = str_extract(Dose, "[0-9]+"),
+         dose_int = str_extract(Dose, "[A-Z]+"),
+         ULU = as.numeric(ULU),
+         RIM = as.numeric(RIM),
+         OCS = as.numeric(OCS),
+         ICS = as.numeric(ICS),
+         ELU = as.numeric(ELU),
+         ESP = as.numeric(ESP),
+         huPPB = as.numeric(huPPB),
+         MIC_Rv = as.numeric(MIC_Rv),
+         MacUptake = as.numeric(MacUptake)) %>%
   select(drug, dosage, dose_int, level, PLA:MacUptake)
 
-spleen_eff %>% 
-  rename(drug = X__1,
-         dose = Dose) %>% 
-  mutate(level = "Trough") %>% 
-  select(drug, dose, level, PLA:MacUptake)
+
+spleen_eff <- spleen_eff %>% 
+  rename(drug = X__1) %>% 
+  mutate(level = "Trough",
+         dosage = str_extract(Dose, "[0-9]+"),
+         dose_int = str_extract(Dose, "[A-Z]+"),
+         SLU = as.numeric(SLU),
+         SLE = as.numeric(SLE),
+         huPPB = as.numeric(huPPB)) %>% 
+  select(drug, dosage, dose_int, level, PLA:MacUptake)
 ```
+
+```{r combining the data frames}
+efficacy <- bind_rows(lung_eff, spleen_eff)
+```
+
+```{r write example csv file}
+write_csv("")
+```
+
