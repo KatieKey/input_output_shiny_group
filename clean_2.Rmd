@@ -34,10 +34,10 @@ clean_2_spleen <- read_xlsx("DRUG_CLASS_I_Mean_Cmax_Trough_Efficacy_R_DATA_ANALY
                   dplyr::select(-dose_info)
 
 clean_2 <- dplyr::full_join(clean_2_lung, clean_2_spleen,
-                            by = c("drug", "dose", "dosing_interval", "mouse_id"))
+                            by = c("drug", "dosage", "dose_interval", "mouse_id"))
 
-write_csv(clean_2_lung, path = paste0(getwd(), "/clean_2_lung.csv"))
-write_csv(clean_2_spleen, path = paste0(getwd(), "/clean_2_spleen.csv"))
+write_csv(clean_2_lung, path = paste0(getwd(), "/CSV_Files/clean_2_lung.csv"))
+write_csv(clean_2_spleen, path = paste0(getwd(), "/CSV_Files/clean_2_spleen.csv"))
 
 ```
 
