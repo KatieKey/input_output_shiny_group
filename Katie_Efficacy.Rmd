@@ -4,6 +4,7 @@ author: "Katie Key"
 date: "November 8, 2017"
 output: html_document
 ---
+## make it look like clean_2_combined.csv
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
