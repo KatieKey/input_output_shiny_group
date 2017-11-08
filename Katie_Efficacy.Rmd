@@ -41,10 +41,11 @@ write_csv(efficacy_clean, path = paste0(getwd(), "/CSV_Files/clean_efficacy.csv"
 
 ```{r, warning=FALSE,echo=FALSE,message=FALSE}
 
+# put this as a fileupload widget in the app ?
 
-efficacy_function <- function(data = "FILE"){
-  efficacy_data <- read_excel("FILE")
-  
+efficacy_data <- read_excel("FILE")
+
+efficacy_function <- function(data = efficacy_data){
   efficacy_clean <- efficacy %>% 
   select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
          Treatment_Interval,Elung,Espleen) %>% 
@@ -57,7 +58,9 @@ efficacy_function <- function(data = "FILE"){
   return(efficacy_clean)
 }
 
-efficacy_function(data = "~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
+efficacy_data <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
+
+efficacy_function()
 
 ```
 
