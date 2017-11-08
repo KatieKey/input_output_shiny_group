@@ -1,0 +1,24 @@
+---
+title: "Lizette_Laser_Capture"
+author: "Lizette van Zyl"
+date: "November 8, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+setwd("~/Masters/R_Programming_Fall_2017/input_output_shiny_group")
+```
+
+```{r}
+clean_las_cap <- read_xlsx("data/Gates_18_MALDI_Tissue Laser Capture R.xlsx") %>%
+                 select(-StudyID, -Metabolite)
+```
+
