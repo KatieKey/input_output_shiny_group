@@ -32,7 +32,12 @@ efficacy_clean <- efficacy %>%
          dosage = Drug_Dose,
          days_treatment = Days_Treatment,
          dose_interval = Treatment_Interval,
-         drug = Compound)
+         drug = Compound) %>%
+  mutate(lung_efficacy = as.numeric(lung_efficacy)) %>% 
+  mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>% 
+  group_by(Protocol_Animal, drug, Group, dosage, days_treatment, dose_interval) %>% 
+  summarize(lung_efficacy_log = log10(lung_efficacy),
+            spleen_efficacy_log = log10(spleen_efficacy))
 
 write_csv(efficacy_clean, path = paste0(getwd(), "/CSV_Files/clean_efficacy.csv")) 
 
@@ -45,6 +50,8 @@ write_csv(efficacy_clean, path = paste0(getwd(), "/CSV_Files/clean_efficacy.csv"
 
 efficacy_data <- read_excel("FILE")
 
+efficacy_data <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
+
 efficacy_function <- function(data = efficacy_data){
   efficacy_clean <- efficacy %>% 
   select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
@@ -54,11 +61,14 @@ efficacy_function <- function(data = efficacy_data){
          dosage = Drug_Dose,
          days_treatment = Days_Treatment,
          dose_interval = Treatment_Interval,
-         drug = Compound)
+         drug = Compound) %>%
+  mutate(lung_efficacy = as.numeric(lung_efficacy)) %>% 
+  mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>% 
+  group_by(Protocol_Animal, drug, Group, dosage, days_treatment, dose_interval) %>% 
+  summarize(lung_efficacy = log10(lung_efficacy),
+            spleen_efficacy = log10(spleen_efficacy))
   return(efficacy_clean)
 }
-
-efficacy_data <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
 
 efficacy_function()
 
