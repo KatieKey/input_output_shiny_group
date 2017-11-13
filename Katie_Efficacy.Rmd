@@ -5,27 +5,63 @@ date: "November 8, 2017"
 output: html_document
 ---
 ## make it look like clean_2_combined.csv
+mouse_id, compound, group, protocol_animal,
+drug_dose, formulation, dose_frequency, days_treatment combined with treatment_interval
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
+
+library(readxl)
+library(readr)
+library(tidyr)
+library(dplyr)
+library(utils)
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+efficacy <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
 
-```{r cars}
-summary(cars)
+efficacy_clean <- efficacy %>% 
+  select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
+         Treatment_Interval,Elung,Espleen) %>% 
+  rename(lung_efficacy = Elung,
+         spleen_efficacy = Espleen,
+         dosage = Drug_Dose,
+         days_treatment = Days_Treatment,
+         dose_interval = Treatment_Interval,
+         drug = Compound)
+
+write_csv(efficacy_clean, path = paste0(getwd(), "/CSV_Files/clean_efficacy.csv")) 
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r, warning=FALSE,echo=FALSE,message=FALSE}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# put this as a fileupload widget in the app ?
+
+efficacy_data <- read_excel("FILE")
+
+efficacy_function <- function(data = efficacy_data){
+  efficacy_clean <- efficacy %>% 
+  select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
+         Treatment_Interval,Elung,Espleen) %>% 
+  rename(lung_efficacy = Elung,
+         spleen_efficacy = Espleen,
+         dosage = Drug_Dose,
+         days_treatment = Days_Treatment,
+         dose_interval = Treatment_Interval,
+         drug = Compound)
+  return(efficacy_clean)
+}
+
+efficacy_data <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
+
+efficacy_function()
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
