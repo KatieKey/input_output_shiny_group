@@ -13,7 +13,12 @@ library(stringr)
 ```
 
 Here I will read in the excel file
-```{r load packages}
-
+```{r read excel file}
+plasma <- read_xlsx("data/Gates_18_MALDI_Plasma R.xlsx") 
 ```
 
+```{r clean the plasma file}
+clean_plasma <- plasma %>%
+  select(MouseID, Compound, Group, Protocol_Animal, Dosing, Timepoint, Plasma_Parent) %>%
+  rename(drug = Compound, mouse_number = MouseID)
+```
