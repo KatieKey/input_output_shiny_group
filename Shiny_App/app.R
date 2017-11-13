@@ -18,16 +18,24 @@ ui <- fluidPage(
    # Sidebar with a slider input for number of bins 
    sidebarLayout(
       sidebarPanel(
-         sliderInput("bins",
-                     "Number of bins:",
-                     min = 1,
-                     max = 50,
-                     value = 30)
+         fileInput(label = "Efficacy", inputId = "efficacy", 
+                    buttonLabel = "Efficacy Data"),
+         fileInput(label = "Plasma", inputId = "plasma", 
+                   buttonLabel = "Plasma Data"),
+         fileInput(label = "Tissue Laser", inputId = "tissue_laser", 
+                   buttonLabel = "Tissue Laser Data"),
+         fileInput(label = "Tissue Std PK", inputId = "tissue_std_pk", 
+                   buttonLabel = "Tissue Std PK Data")
       ),
       
       # Show a plot of the generated distribution
       mainPanel(
-         plotOutput("distPlot")
+         radioButtons(label = "Pick Data Set", 
+                      choiceNames = 
+                      "Efficacy", 
+                      "Plasma",
+                      "Tissue Laser",
+                      "Tissue Std PK")
       )
    )
 )
