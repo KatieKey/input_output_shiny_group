@@ -1,4 +1,4 @@
-mouse_number,drug,Group,Protocol_Animal,Dosing,Timepoint,Plasma_Parent
+mouse_number,drug,Group,Protocol_Animal,Dosing,Timepoint,plasma_concentration
 001,RIF,1,A,Single_Dose,NA,8080
 002,RIF,1,B,Single_Dose,NA,7180
 003,RIF,1,C,Single_Dose,NA,2380
