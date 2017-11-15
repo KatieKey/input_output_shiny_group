@@ -15,14 +15,13 @@ pk <- read_excel("data/Gates_18_MALDI_Tissue Std PK R.xlsx")
 
 ```{r}
 pk %>% 
-  select(Compound, MouseID, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>% 
+  mutate(ID = 1:n()) %>%
+  select(ID, Compound, MouseID, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
   rename(drug = Compound,
-         mouse_number = MouseID) 
-
-%>% 
+         mouse_number = MouseID) %>% 
   spread(key = Compartment, value = Parent)
 
-group_by(drug, mouse_number, Group, Protocol_Animal, Timepoint) %>%
+# group_by(drug, mouse_number, Group, Protocol_Animal) %>%
 ```
 
 Columns to keep: MouseID, Compound, Group, Protocol_Animal, Dosing, Timepoint, Collection, Compartment, Parent
