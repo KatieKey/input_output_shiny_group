@@ -23,7 +23,8 @@ clean_plasma <- plasma %>%
          Compound, 
          Group, 
          Protocol_Animal, 
-         Dosing, Timepoint, 
+         Dosing, 
+         Timepoint, 
          Plasma_Parent) %>%
   rename(drug = Compound, 
          mouse_number = MouseID, 
