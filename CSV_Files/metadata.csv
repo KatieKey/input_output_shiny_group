@@ -1,0 +1,24 @@
+X__1
+"huPPB, muPPB: % bound"
+NA
+Caseum binding (% unbound)
+NA
+MacUptake (I/E concentration ratio)
+NA
+# Individual and mean values of DRUG concentrations/levels in TB-infected
+"# Kramnik mice plasma, lung, and lung lesions, together with efficacy"
+# measurements  (CFU reduction) in lungs and spleen.
+#
+# Drugs:
+#   Concentration/level measurements (ng/mL (plasma) or ng/g (tissue)).
+# Samples: at Cmax (2h) and at Trough (16h).
+#   Plasma (PLA)
+#   Uninvolved Lung (ULU)
+#   Rim (RIM)
+#   Outer caseum (OCS)
+#   Inner caseum (ICS)
+#   Stardard Lung (SLU)
+#   Standard Lesion (SLE)
+"# Efficacy: CFU change [untreated - drugX log 10 CFU/organ] (Mean values shown here, PD individaul values)"
+#   Lung (ELU)
+#   Spleen (ESP)
