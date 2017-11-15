@@ -22,3 +22,7 @@ clean_plasma <- plasma %>%
   select(MouseID, Compound, Group, Protocol_Animal, Dosing, Timepoint, Plasma_Parent) %>%
   rename(drug = Compound, mouse_number = MouseID)
 ```
+
+```{r clean_plasma to csv}
+write_csv(clean_plasma, path = paste0("CSV_Files/clean_plasma.csv"))
+```
