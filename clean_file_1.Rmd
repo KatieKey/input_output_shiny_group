@@ -54,5 +54,6 @@ is.data.frame(efficacy)
 
 ```{r write example csv file}
 write_csv(efficacy, "CSV_Files/efficacy_summary.csv")
+write_csv(metadata, "CSV_Files/metadata.csv")
 ```
 
