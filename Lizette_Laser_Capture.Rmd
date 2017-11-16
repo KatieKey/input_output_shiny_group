@@ -38,6 +38,8 @@ clean_las_cap <- mutate(clean_las_cap, MouseID = mice_ids) %>%
                         OCS = `outer caseum`, ICS = `inner caseum`) %>%
                  mutate(ULU = as.numeric(ULU), RIM = as.numeric(RIM),
                         OCS = as.numeric(OCS), ICS = as.numeric(ICS))
+
+write_csv(clean_las_cap, path = paste0(getwd(), "/CSV_Files/clean_las_cap.csv"))
 ```
 
 ```{r}
