@@ -78,11 +78,25 @@ efficacy_function <- function(inputId){
          dose_interval = Treatment_Interval,
          drug = Compound) %>%
   mutate(lung_efficacy = as.numeric(lung_efficacy)) %>% 
-  mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>% 
+  mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>%
+  mutate(dose_interval = as.factor(dose_interval)) %>%
+  mutate(days_treatment = as.factor(days_treatment)) %>% 
   group_by(Protocol_Animal, drug, Group, dosage, days_treatment, dose_interval) %>% 
-  summarize(lung_efficacy = log10(lung_efficacy),
-            spleen_efficacy = log10(spleen_efficacy))
-  renderDataTable(efficacy_clean) 
+  summarize(lung_efficacy_log = log10(lung_efficacy),
+            spleen_efficacy_log = log10(spleen_efficacy))
+
+levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="Pre Rx 9 week"] <- "_Baseline"
+levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QID"
+levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
+levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
+
+efficacy_clean <- efficacy_clean %>% 
+  unite(days_dose, days_treatment, dose_interval, sep = "") %>% 
+  separate(days_dose, c("days", "dose"), sep = "_") %>% 
+  rename("days_treatment" = days,
+         "dose_interval" = dose) %>% 
+  mutate(days_treatment = as.numeric(days_treatment))
+  DT::renderDataTable(efficacy_clean) 
   return(efficacy_clean)
 }
 
