@@ -20,19 +20,22 @@ setwd("~/Masters/R_Programming_Fall_2017/input_output_shiny_group")
 
 ```{r}
  # it is ok to add in the rows that are missing in order to map mice ids
+
 clean_las_cap <- read_xlsx("data/Gates_18_MALDI_Tissue Laser Capture R_liz_edit.xlsx") %>%
-                 rename(`Parent [ng/ml]` = Parent) %>%
+                 rename(clean_las_cap, `Parent [ng/ml]` = Parent) %>%
                  select(-StudyID, -Metabolite, - Units, - Collection)
-                 # spread(key = Compartment, value = Parent) %>%
+                 
                  # gather(key = "Compartment", value = "Parent", `inner caseum`,
                  #       `outer caseum`, rim, `uninvolved lung`) %>%
                  # filter(!is.na(Parent))
 
 n <- nrow(clean_las_cap)
+mice_ids <- rep(c(1:(n/4)), each = 4)
+
+clean_las_cap <- mutate(clean_las_cap, MouseID = mice_ids) %>%
+                 spread(key = Compartment, value = Parent)
 ```
 
 ```{r}
-mice_ids <- rep(c(1:(n/4)), each = 4)
 
-clean_las_cap <- mutate(clean_las_cap, MouseID = mice_ids)
 ```
