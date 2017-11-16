@@ -39,7 +39,7 @@ ui <- fluidPage(
               radioButtons("radio", (label = h3("Pick a Data Set")),
                            choices = list("Efficacy" = efficacy_function(inputId = "efficacy"),
                                           "Plasma" = 2, "Tissue Laser" = 3,
-                                          "Tissue Std PK" = 4, "In Vitro" = 5)),
+                                          "Tissue Std PK" = 4, "In Vitro" = 5), selected = 1),
               
               DT::dataTableOutput("table")
     )
@@ -51,7 +51,7 @@ ui <- fluidPage(
 server <- function(input, output) 
   
 {
-  output$table <- DT::renderDataTable({ datatable(input$radio) })
+  output$table <- DT::renderDataTable({ input$radio })
 }
 
 
