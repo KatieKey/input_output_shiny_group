@@ -36,3 +36,20 @@ Here I write the data frame clean_plasma to a csv file
 ```{r clean_plasma to csv}
 write_csv(clean_plasma, path = paste0("CSV_Files/clean_plasma.csv"))
 ```
+
+Here I will write my cleaning code into a function called plasma_function
+```{r plasma function}
+plasma_function <- function(inputID){
+  clean_plasma <- plasma %>%
+  select(MouseID, 
+         Compound, 
+         Group, 
+         Protocol_Animal, 
+         Dosing, 
+         Timepoint, 
+         Plasma_Parent) %>%
+  rename(drug = Compound, 
+         mouse_number = MouseID, 
+         plasma_concentration = Plasma_Parent)
+}
+```
