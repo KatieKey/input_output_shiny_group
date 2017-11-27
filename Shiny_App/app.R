@@ -17,16 +17,21 @@ library(shiny)
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   
-  # Application title
   titlePanel("Mycobacteria Research Laboratories"),
   helpText("Upload Data and Explore Data Tables and Graphs for Each of the Respective
            Data Excel Files (i.e., Efficacy)"),
   
-  # Sidebar with a slider input for number of bins 
+  tabsetPanel(type = "tabs",
+              tabPanel("Clean Data Set", tableOutput("radio")),
+              tabPanel("Summary", tableOutput("plot")),
+              tabPanel("Independent", verbatimTextOutput("summary")),
+              tabPanel("Independent ~ Dependent", tableOutput("table"))
+  ),
+
   sidebarLayout(
     sidebarPanel(width = 4, (label = h3("Upload Data")),
                  
-                 efficacy_input <- fileInput(label = "Efficacy", inputId = "efficacy",
+                 fileInput(label = "Efficacy", inputId = "efficacy",
                            buttonLabel = "Efficacy Data", multiple = TRUE, accept = ".xlsx"),
                  fileInput(label = "Plasma", inputId = "plasma", 
                            buttonLabel = "Plasma Data", multiple = TRUE, accept = ".xlsx"),
@@ -38,7 +43,6 @@ ui <- fluidPage(
                            buttonLabel = "In Vitro Data", multiple = TRUE, accept = ".xlsx")
     ),
     
-    # Show a plot of the generated distribution
     
     mainPanel(radioButtons("radio", (label = h3("Pick a Data Set")),
                            helpText("Select a Data Set to View Data Table"),
@@ -47,10 +51,10 @@ ui <- fluidPage(
                                           "Tissue Std PK" = 4, "In Vitro" = 5)),
               
               tableOutput("radio")
+              
     )
   )
 )
-
 
 # Define server logic required to draw a histogram
 server <- function(input, output) 
