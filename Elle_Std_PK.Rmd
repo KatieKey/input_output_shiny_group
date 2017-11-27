@@ -10,18 +10,23 @@ library(tidyverse)
 library(stringr)
 library(readxl)
 
-pk <- read_excel("data/Gates_18_MALDI_Tissue Std PK R.xlsx")
+pk <- read_excel("data/Gates_18_MALDI_Tissue Std PK R_Elle_edit.xlsx")
 ```
 
 ```{r}
-pk %>% 
-  mutate(ID = 1:n()) %>%
-  select(ID, Compound, MouseID, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
+n <- nrow(pk)
+mice_ids <- rep(c(1:(n/2)), each = 2)
+
+pk_clean <- pk %>% 
+  mutate(mouse_number = mice_ids) %>%
+  select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
   rename(drug = Compound,
-         mouse_number = MouseID) %>% 
-  spread(key = Compartment, value = Parent)
+         `Parent [ng/ml]` = Parent) %>% 
+  spread(key = Compartment, value = `Parent [ng/ml]`) %>% 
+  rename(SLU = Lung, 
+         SLE = Lesion) %>% 
+  mutate(SLU = as.numeric(SLU),
+         SLE = as.numeric(SLE))
 
-# group_by(drug, mouse_number, Group, Protocol_Animal) %>%
+write.csv(pk_clean, "CSV_Files/clean_Std_PK.csv")
 ```
-
-Columns to keep: MouseID, Compound, Group, Protocol_Animal, Dosing, Timepoint, Collection, Compartment, Parent
