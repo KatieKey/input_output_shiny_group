@@ -13,43 +13,11 @@ library(tidyr)
 library(utils)
 library(dplyr)
 library(shiny)
+library(DT)
 
-efficacy_function <- function(efficacy_input){
-  efficacy_clean <- efficacy_input %>% 
-    select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
-           Treatment_Interval,Elung,Espleen) %>% 
-    rename(lung_efficacy = Elung,
-           spleen_efficacy = Espleen,
-           dosage = Drug_Dose,
-           days_treatment = Days_Treatment,
-           dose_interval = Treatment_Interval,
-           drug = Compound) %>%
-    mutate(lung_efficacy = as.numeric(lung_efficacy)) %>% 
-    mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>%
-    mutate(dose_interval = as.factor(dose_interval)) %>%
-    mutate(days_treatment = as.factor(days_treatment)) %>% 
-    group_by(Protocol_Animal, drug, Group, dosage, days_treatment, dose_interval) %>% 
-    summarize(lung_efficacy_log = log10(lung_efficacy),
-              spleen_efficacy_log = log10(spleen_efficacy))
-  
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="Pre Rx 9 week"] <- "_Baseline"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QID"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
-  levels(efficacy_clean$drug)[levels(efficacy_clean$drug)==""] <- "Baseline"
-  
-  
-  efficacy_clean <- efficacy_clean %>% 
-    unite(days_dose, days_treatment, dose_interval, sep = "") %>% 
-    separate(days_dose, c("days", "dose"), sep = "_") %>% 
-    rename("days_treatment" = days,
-           "dose_interval" = dose) %>% 
-    mutate(days_treatment = as.numeric(days_treatment))
-  DT::renderDataTable(efficacy_clean) 
-  return(efficacy_clean)
-}
+source("helper.R")
 
-# Define UI for application that draws a histogram
+# Define UI for application 
 ui <- fluidPage(
   
   titlePanel("Mycobacteria Research Laboratories"),
@@ -80,7 +48,25 @@ ui <- fluidPage(
     
     mainPanel(width = 8,
       tabsetPanel(type = "tabs",
-                  tabPanel("Clean Data Set", tableOutput("radio")),
+                  tabPanel("Raw Data Sets", 
+                           tabsetPanel(type = "tabs",
+                             tabPanel("Efficacy",
+                               DT::dataTableOutput("raw_efficacy_table")
+                               ),
+                             tabPanel("Plasma"),
+                             tabPanel("Tissue Laser"),
+                             tabPanel("Tissue Std PK"),
+                             tabPanel("In Vitro")
+                           )
+                           ),
+                  tabPanel("Clean Data Set",
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Efficacy",
+                                                DT::dataTableOutput("clean_efficacy_table")
+                                                ),
+                                       tabPanel("Next cleaned data"),
+                                       tabPanel("The one after that")
+                                       )),
                   tabPanel("Summary", tableOutput("plot")),
                   tabPanel("Independent", verbatimTextOutput("summary")),
                   tabPanel("Independent ~ Dependent", tableOutput("indepdep"))
@@ -90,11 +76,47 @@ ui <- fluidPage(
 )
 
 
-# Define server logic required to draw a histogram
+# Define server logic 
 server <- function(input, output) 
   
 {
-  output$table <- DT::renderDataTable({efficacy_function(input$efficacy) })
+  # Render data table with raw efficacy data
+  output$raw_efficacy_table <- DT::renderDataTable({
+    efficacy_file <- input$efficacy
+    
+    # Make sure you don't show an error by trying to run code before 
+    # a file's been uploaded
+    if(is.null(efficacy_file)){
+      return(NULL)
+    }
+    
+    # Work-around for `readxl` functions, based on 
+    # https://stackoverflow.com/questions/30624201/read-excel-in-a-shiny-app
+    ext <- tools::file_ext(efficacy_file$name)
+    file.rename(efficacy_file$datapath, 
+                paste(efficacy_file$datapath, ext, sep = "."))
+    read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+    
+  })
+  
+  # Render data table with clean efficacy data
+  output$clean_efficacy_table <- DT::renderDataTable({
+    efficacy_file <- input$efficacy
+    
+    # Make sure you don't show an error by trying to run code before 
+    # a file's been uploaded
+    if(is.null(efficacy_file)){
+      return(NULL)
+    }
+    
+    # Work-around for `readxl` functions, based on 
+    # https://stackoverflow.com/questions/30624201/read-excel-in-a-shiny-app
+    ext <- tools::file_ext(efficacy_file$name)
+    file.rename(efficacy_file$datapath, 
+                paste(efficacy_file$datapath, ext, sep = "."))
+    efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+    efficacy_function(efficacy_df)
+    })
 }
 
 
