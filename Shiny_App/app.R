@@ -122,12 +122,11 @@ server <- function(input, output) {
   
 ###### CODE FOR RENDERING RAW DATA
   
-  # Render data table with raw efficacy data
+# Render data table with raw efficacy data
   output$raw_efficacy_table <- DT::renderDataTable({
     efficacy_file <- input$efficacy
     
-    # Make sure you don't show an error by trying to run code before 
-    # a file's been uploaded
+# Make sure you don't show an error by trying to run code before a file's been uploaded
     if(is.null(efficacy_file)){
       return(NULL)
     }
@@ -138,12 +137,11 @@ server <- function(input, output) {
     read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
   })
   
-# render data table with raw plasma data
+# Render data table with raw plasma data
     output$raw_plasma_table <- DT::renderDataTable({
       plasma_file <- input$plasma
       
-      # Make sure you don't show an error by trying to run code before 
-      # a file's been uploaded
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
       if(is.null(plasma_file)){
         return(NULL)
       }
@@ -155,12 +153,11 @@ server <- function(input, output) {
       
     })
     
-# render data table for raw tissue laser data
+# Render data table for raw tissue laser data
     output$raw_tissue_laser_table <- DT::renderDataTable({
       tissue_laser_file <- input$tissue_laser
       
-      # Make sure you don't show an error by trying to run code before 
-      # a file's been uploaded
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
       if(is.null(tissue_laser_file)){
         return(NULL)
       }
@@ -172,12 +169,11 @@ server <- function(input, output) {
       
     })
     
-# render data table for raw tissue std pk data
+# Render data table for raw tissue std pk data
     output$raw_tissue_std_pk_table <- DT::renderDataTable({
       tissue_std_pk_file <- input$tissue_std_pk
       
-      # Make sure you don't show an error by trying to run code before 
-      # a file's been uploaded
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
       if(is.null(tissue_std_pk_file)){
         return(NULL)
       }
@@ -189,12 +185,11 @@ server <- function(input, output) {
       
     })
     
-# render data table for raw in vitro data
+# Render data table for raw in vitro data
     output$raw_in_vitro_table <- DT::renderDataTable({
       in_vitro_file <- input$in_vitro
       
-      # Make sure you don't show an error by trying to run code before 
-      # a file's been uploaded
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
       if(is.null(in_vitro_file)){
         return(NULL)
       }
@@ -209,12 +204,11 @@ server <- function(input, output) {
 
 ######## CODE FOR RENDERING CLEAN DATA
   
-  # Render data table with clean efficacy data
+# Render data table with clean efficacy data
   output$clean_efficacy_table <- DT::renderDataTable({
     efficacy_file <- input$efficacy
     
-    # Make sure you don't show an error by trying to run code before 
-    # a file's been uploaded
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
     if(is.null(efficacy_file)){
       return(NULL)
     }
@@ -226,12 +220,11 @@ server <- function(input, output) {
     efficacy_function(efficacy_df)
   })
   
-  # Render data table with clean plasma data
+# Render data table with clean plasma data
   output$clean_plasma_table <- DT::renderDataTable({
     plasma_file <- input$plasma
     
-    # Make sure you don't show an error by trying to run code before 
-    # a file's been uploaded
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
     if(is.null(plasma_file)){
       return(NULL)
     }
@@ -247,8 +240,7 @@ server <- function(input, output) {
   output$clean_tissue_laser_table <- DT::renderDataTable({
     tissue_laser_file <- input$tissue_laser
     
-    # Make sure you don't show an error by trying to run code before 
-    # a file's been uploaded
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
     if(is.null(tissue_laser_file)){
       return(NULL)
     }
@@ -260,12 +252,11 @@ server <- function(input, output) {
     tissue_laser_function(tissue_laser_df)
   })
   
-  # Render data table with clean tissue std pk data
+# Render data table with clean tissue std pk data
   output$clean_tissue_std_pk_table <- DT::renderDataTable({
     tissue_std_pk_file <- input$tissue_std_pk
     
-    # Make sure you don't show an error by trying to run code before 
-    # a file's been uploaded
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
     if(is.null(tissue_std_pk_file)){
       return(NULL)
     }
@@ -281,8 +272,7 @@ server <- function(input, output) {
   output$clean_in_vitro_table <- DT::renderDataTable({
     in_vitro_file <- input$in_vitro
     
-    # Make sure you don't show an error by trying to run code before 
-    # a file's been uploaded
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
     if(is.null(in_vitro_file)){
       return(NULL)
     }
@@ -301,6 +291,8 @@ server <- function(input, output) {
 # Run the application 
 shinyApp(ui = ui, server = server)
 
-# Work-around for `readxl` functions, based on 
+
+# NOTES:
+# Work-around for `readxl` functions, based on: 
 # https://stackoverflow.com/questions/30624201/read-excel-in-a-shiny-app
 

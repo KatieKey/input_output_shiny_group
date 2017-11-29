@@ -1,4 +1,8 @@
-# Efficacy_Function cleans "efficacy" data 
+
+
+####### FUNCTIONS FOR CLEANING RAW DATA FILES
+
+# efficacy_function cleans raw efficacy data in Shiny app
 library(dplyr)
 
 efficacy_function <- function(efficacy_df){
@@ -36,7 +40,7 @@ efficacy_function <- function(efficacy_df){
   return(efficacy_clean)
 }
 
-# plasma_function cleans "plasma" Excel spreadsheet
+# plasma_function cleans raw plasma data in Shiny app
 plasma_function <- function(plasma_df){
   plasma_clean <- plasma_df %>%
     select(MouseID, 
@@ -53,8 +57,7 @@ plasma_function <- function(plasma_df){
 }
 
 
-# tissue_laser_ function cleans the Laser Capture Excel spreadsheet
-
+# tissue_laser_function cleans raw tissue laser data in Shiny app
 tissue_laser_function <- function(tissue_laser_df) {
   tissue_laser_clean <- tissue_laser_df %>%
     rename(`Parent [ng/ml]` = Parent) %>%
@@ -74,7 +77,7 @@ tissue_laser_function <- function(tissue_laser_df) {
 
 
 
-# pk_function cleans PK data
+# tissue_std_pk_function cleans raw tissue std pk data in Shiny app
 tissue_std_pk_function <- function(tissue_std_pk_df){  
   tissue_std_pk_clean <- tissue_std_pk_df %>%
   rename(mouse_number = mice_ids) %>%
@@ -89,7 +92,8 @@ tissue_std_pk_function <- function(tissue_std_pk_df){
 return(tissue_std_pk_clean)
 } 
 
-#in_vitro_function cleans in_vitro data
+
+# in_vitro_function cleans raw in_vitro data in Shiny app
 in_vitro_function <- function(in_vitro_df){
   in_vitro_clean <- in_vitro_df 
   return(in_vitro_clean)
