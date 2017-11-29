@@ -21,12 +21,10 @@ source("helper.R")
 ui <- fluidPage(
   
   titlePanel("Mycobacteria Research Laboratories"),
-  helpText("Upload Data and Explore Data Tables and Graphs for Each of the Respective
-           Data Excel Files (i.e., Efficacy)"),
+  helpText("Upload Data and Explore Data Tables and Graphs Using the Tabs Below"),
   
   sidebarLayout(
-    sidebarPanel(width = 4, (label = h3("Upload & Select Data")),
-                 helpText("Upload Excel Files and Select a Data Frame to Explore Below"),
+    sidebarPanel(width = 3, (label = h3("Upload Data")),
                  
                  fileInput(label = "Efficacy", inputId = "efficacy",
                            buttonLabel = "Efficacy Data", multiple = TRUE, accept = ".xlsx"),
@@ -37,13 +35,7 @@ ui <- fluidPage(
                  fileInput(label = "Tissue Std PK", inputId = "tissue_std_pk", 
                            buttonLabel = "Tissue Std PK Data", multiple = TRUE, accept = ".xlsx"),
                  fileInput(label = "In Vitro", inputId = "in_vitro", 
-                           buttonLabel = "In Vitro Data", multiple = TRUE, accept = ".xlsx"),
-    
-    radioButtons("radio", (label = h3("Pick a Data Set")),
-                 helpText("Select a Data Set to View Data Table"),
-                 choices = list("Efficacy",
-                                "Plasma" = 2, "Tissue Laser" = 3,
-                                "Tissue Std PK" = 4, "In Vitro" = 5))
+                           buttonLabel = "In Vitro Data", multiple = TRUE, accept = ".xlsx")
     ),
     
     mainPanel(width = 8,
@@ -53,7 +45,9 @@ ui <- fluidPage(
                              tabPanel("Efficacy",
                                DT::dataTableOutput("raw_efficacy_table")
                                ),
-                             tabPanel("Plasma"),
+                             tabPanel("Plasma",
+                                DT::dataTableOutput("raw_plasma_table")
+                                ),
                              tabPanel("Tissue Laser"),
                              tabPanel("Tissue Std PK"),
                              tabPanel("In Vitro")
@@ -64,12 +58,40 @@ ui <- fluidPage(
                                        tabPanel("Efficacy",
                                                 DT::dataTableOutput("clean_efficacy_table")
                                                 ),
-                                       tabPanel("Next cleaned data"),
-                                       tabPanel("The one after that")
-                                       )),
-                  tabPanel("Summary", tableOutput("plot")),
-                  tabPanel("Independent", verbatimTextOutput("summary")),
-                  tabPanel("Independent ~ Dependent", tableOutput("indepdep"))
+                                       tabPanel("Plasma",
+                                                DT::dataTableOutput("clean_plasma_table")),
+                                       tabPanel("Tissue Laser"),
+                                       tabPanel("Tissue Std PK"),
+                                       tabPanel("In Vitro")
+                                       )
+                           ),
+                  tabPanel("Summary", 
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Efficacy"),
+                                       tabPanel("Plasma"),
+                                       tabPanel("Tissue Laser"),
+                                       tabPanel("Tissue Std PK"),
+                                       tabPanel("In Vitro")
+                           )
+                           ),
+                  tabPanel("Independent", 
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Efficacy"),
+                                       tabPanel("Plasma"),
+                                       tabPanel("Tissue Laser"),
+                                       tabPanel("Tissue Std PK"),
+                                       tabPanel("In Vitro")
+                           )
+                           ),
+                  tabPanel("Independent ~ Dependent", 
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Efficacy"),
+                                       tabPanel("Plasma"),
+                                       tabPanel("Tissue Laser"),
+                                       tabPanel("Tissue Std PK"),
+                                       tabPanel("In Vitro")
+                           )
+                           )
       )
     )
   )

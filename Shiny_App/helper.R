@@ -1,4 +1,4 @@
-# (Add description of function here)
+#Efficacy_Function cleans "efficacy" data and outputs a cleaned version of that Excel spreadsheet 
 efficacy_function <- function(efficacy_df){
   efficacy_clean <- efficacy_df %>% 
     select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
@@ -33,3 +33,25 @@ efficacy_function <- function(efficacy_df){
 
   return(efficacy_clean)
 }
+
+#clean_las_cap function cleans the Laser Capture Excel spreadsheet
+las_file_to_clean <- "data/Gates_18_MALDI_Tissue Laser Capture R_liz_edit.xlsx"
+
+clean_las_cap <- function(file_to_clean) {
+  
+  las_cap <- read_xlsx(file_to_clean) %>%
+    rename(`Parent [ng/ml]` = Parent) %>%
+    select(-StudyID, -Metabolite, - Units, - Collection, - `Sample ID`)
+  
+  n <- nrow(las_cap)
+  mice_ids <- rep(c(1:(n/4)), each = 4)
+  
+  las_cap <- mutate(las_cap, MouseID = mice_ids) %>%
+    spread(key = Compartment, value = `Parent [ng/ml]`) %>%
+    rename(ULU = `uninvolved lung`, RIM = rim,
+           OCS = `outer caseum`, ICS = `inner caseum`) %>%
+    mutate(ULU = as.numeric(ULU), RIM = as.numeric(RIM),
+           OCS = as.numeric(OCS), ICS = as.numeric(ICS))
+  return(las_cap)
+}
+
