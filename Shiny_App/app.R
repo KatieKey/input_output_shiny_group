@@ -10,55 +10,21 @@
 library(readxl)
 library(readr)
 library(tidyr)
-library(utils)
+library(utils) 
 library(dplyr)
 library(shiny)
+library(DT) 
 
-efficacy_function <- function(efficacy_input){
-  efficacy_clean <- efficacy_input %>% 
-    select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
-           Treatment_Interval,Elung,Espleen) %>% 
-    rename(lung_efficacy = Elung,
-           spleen_efficacy = Espleen,
-           dosage = Drug_Dose,
-           days_treatment = Days_Treatment,
-           dose_interval = Treatment_Interval,
-           drug = Compound) %>%
-    mutate(lung_efficacy = as.numeric(lung_efficacy)) %>% 
-    mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>%
-    mutate(dose_interval = as.factor(dose_interval)) %>%
-    mutate(days_treatment = as.factor(days_treatment)) %>% 
-    group_by(Protocol_Animal, drug, Group, dosage, days_treatment, dose_interval) %>% 
-    summarize(lung_efficacy_log = log10(lung_efficacy),
-              spleen_efficacy_log = log10(spleen_efficacy))
-  
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="Pre Rx 9 week"] <- "_Baseline"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QID"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
-  levels(efficacy_clean$drug)[levels(efficacy_clean$drug)==""] <- "Baseline"
-  
-  
-  efficacy_clean <- efficacy_clean %>% 
-    unite(days_dose, days_treatment, dose_interval, sep = "") %>% 
-    separate(days_dose, c("days", "dose"), sep = "_") %>% 
-    rename("days_treatment" = days,
-           "dose_interval" = dose) %>% 
-    mutate(days_treatment = as.numeric(days_treatment))
-  DT::renderDataTable(efficacy_clean) 
-  return(efficacy_clean)
-}
+source("helper.R")
 
-# Define UI for application that draws a histogram
+# Define UI for application 
 ui <- fluidPage(
   
   titlePanel("Mycobacteria Research Laboratories"),
-  helpText("Upload Data and Explore Data Tables and Graphs for Each of the Respective
-           Data Excel Files (i.e., Efficacy)"),
+  helpText("Upload Data and Explore Data Tables and Graphs Using the Tabs Below"),
   
   sidebarLayout(
-    sidebarPanel(width = 4, (label = h3("Upload & Select Data")),
-                 helpText("Upload Excel Files and Select a Data Frame to Explore Below"),
+    sidebarPanel(width = 3, (label = h3("Upload Data")),
                  
                  fileInput(label = "Efficacy", inputId = "efficacy",
                            buttonLabel = "Efficacy Data", multiple = TRUE, accept = ".xlsx"),
@@ -69,36 +35,279 @@ ui <- fluidPage(
                  fileInput(label = "Tissue Std PK", inputId = "tissue_std_pk", 
                            buttonLabel = "Tissue Std PK Data", multiple = TRUE, accept = ".xlsx"),
                  fileInput(label = "In Vitro", inputId = "in_vitro", 
-                           buttonLabel = "In Vitro Data", multiple = TRUE, accept = ".xlsx"),
-    
-    radioButtons("radio", (label = h3("Pick a Data Set")),
-                 helpText("Select a Data Set to View Data Table"),
-                 choices = list("Efficacy",
-                                "Plasma" = 2, "Tissue Laser" = 3,
-                                "Tissue Std PK" = 4, "In Vitro" = 5))
+                           buttonLabel = "In Vitro Data", multiple = TRUE, accept = ".xlsx")
     ),
     
     mainPanel(width = 8,
       tabsetPanel(type = "tabs",
-                  tabPanel("Clean Data Set", tableOutput("radio")),
-                  tabPanel("Summary", tableOutput("plot")),
-                  tabPanel("Independent", verbatimTextOutput("summary")),
-                  tabPanel("Independent ~ Dependent", tableOutput("indepdep"))
+                  tabPanel("Raw Data Sets", 
+                           tabsetPanel(type = "tabs",
+                             tabPanel("Efficacy",
+                               DT::dataTableOutput("raw_efficacy_table")
+                               ),
+                             tabPanel("Plasma",
+                                DT::dataTableOutput("raw_plasma_table")
+                                ),
+                             tabPanel("Tissue Laser",
+                                DT::dataTableOutput("raw_tissue_laser_table")
+                                ),
+                             tabPanel("Tissue Std PK",
+                                DT::dataTableOutput("raw_tissue_std_pk_table")
+                                 ),
+                             tabPanel("In Vitro",
+                                      DT::dataTableOutput("raw_in_vitro_table")
+                           )
+                           )
+                           ),
+                           
+                  tabPanel("Clean Data Set",
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Efficacy",
+                                                DT::dataTableOutput("clean_efficacy_table")
+                                                ),
+                                       tabPanel("Plasma",
+                                                DT::dataTableOutput("clean_plasma_table")
+                                                ),
+                                       tabPanel("Tissue Laser",
+                                                DT::dataTableOutput("clean_tissue_laser_table")
+                                                ),
+                                       tabPanel("Tissue Std PK",
+                                                DT::dataTableOutput("clean_tissue_std_pk_table")
+                                                ),
+                                       tabPanel("In Vitro",
+                                                DT::dataTableOutput("clean_in_vitro_table")
+                                               )
+                           )
+                           ),
+                           
+                  tabPanel("Summary", 
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Efficacy",
+                                                DT::dataTableOutput("summary_efficacy_table")
+                                                ),
+                                       tabPanel("Plasma"),
+                                       tabPanel("Tissue Laser"),
+                                       tabPanel("Tissue Std PK"),
+                                       tabPanel("In Vitro")
+                           )
+                           ),
+                  
+                  tabPanel("Independent", 
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Efficacy"),
+                                       tabPanel("Plasma"),
+                                       tabPanel("Tissue Laser"),
+                                       tabPanel("Tissue Std PK"),
+                                       tabPanel("In Vitro")
+                           )
+                           ),
+                  
+                  tabPanel("Independent ~ Dependent", 
+                           tabsetPanel(type = "tabs",
+                                       tabPanel("Efficacy"),
+                                       tabPanel("Plasma"),
+                                       tabPanel("Tissue Laser"),
+                                       tabPanel("Tissue Std PK"),
+                                       tabPanel("In Vitro")
+                           )
+                  )
+                  )
+                  )
       )
     )
-  )
-)
 
 
-# Define server logic required to draw a histogram
-server <- function(input, output) 
+
+
+#Define server logic 
+server <- function(input, output) {
   
-{
-  output$table <- DT::renderDataTable({efficacy_function(input$efficacy) })
+###### CODE FOR RENDERING RAW DATA
+  
+# Render data table with raw efficacy data
+  output$raw_efficacy_table <- DT::renderDataTable({
+    efficacy_file <- input$efficacy
+    
+# Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(efficacy_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(efficacy_file$name)
+    file.rename(efficacy_file$datapath, 
+                paste(efficacy_file$datapath, ext, sep = "."))
+    read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+  })
+  
+# Render data table with raw plasma data
+    output$raw_plasma_table <- DT::renderDataTable({
+      plasma_file <- input$plasma
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(plasma_file)){
+        return(NULL)
+      }
+      
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath, 
+                  paste(plasma_file$datapath, ext, sep = "."))
+      read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      
+    })
+    
+# Render data table for raw tissue laser data
+    output$raw_tissue_laser_table <- DT::renderDataTable({
+      tissue_laser_file <- input$tissue_laser
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(tissue_laser_file)){
+        return(NULL)
+      }
+      
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath, 
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      
+    })
+    
+# Render data table for raw tissue std pk data
+    output$raw_tissue_std_pk_table <- DT::renderDataTable({
+      tissue_std_pk_file <- input$tissue_std_pk
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(tissue_std_pk_file)){
+        return(NULL)
+      }
+      
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath, 
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      
+    })
+    
+# Render data table for raw in vitro data
+    output$raw_in_vitro_table <- DT::renderDataTable({
+      in_vitro_file <- input$in_vitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(in_vitro_file)){
+        return(NULL)
+      }
+      
+      ext <- tools::file_ext(in_vitro_file$name)
+      file.rename(in_vitro_file$datapath, 
+                  paste(in_vitro_file$datapath, ext, sep = "."))
+      read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
+      
+    })
+    
+
+######## CODE FOR RENDERING CLEAN DATA
+  
+# Render data table with clean efficacy data
+  output$clean_efficacy_table <- DT::renderDataTable({
+    efficacy_file <- input$efficacy
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(efficacy_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(efficacy_file$name)
+    file.rename(efficacy_file$datapath, 
+                paste(efficacy_file$datapath, ext, sep = "."))
+    efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+    efficacy_function(efficacy_df)
+  })
+  
+# Render data table with clean plasma data
+  output$clean_plasma_table <- DT::renderDataTable({
+    plasma_file <- input$plasma
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(plasma_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(plasma_file$name)
+    file.rename(plasma_file$datapath, 
+                paste(plasma_file$datapath, ext, sep = "."))
+    plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+    plasma_function(plasma_df)
+  }) 
+
+# Render data table with clean tissue laser data
+  output$clean_tissue_laser_table <- DT::renderDataTable({
+    tissue_laser_file <- input$tissue_laser
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(tissue_laser_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(tissue_laser_file$name)
+    file.rename(tissue_laser_file$datapath, 
+                paste(tissue_laser_file$datapath, ext, sep = "."))
+    tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+    tissue_laser_function(tissue_laser_df)
+  })
+  
+# Render data table with clean tissue std pk data
+  output$clean_tissue_std_pk_table <- DT::renderDataTable({
+    tissue_std_pk_file <- input$tissue_std_pk
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(tissue_std_pk_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(tissue_std_pk_file$name)
+    file.rename(tissue_std_pk_file$datapath, 
+                paste(tissue_std_pk_file$datapath, ext, sep = "."))
+    tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+    tissue_std_pk_function(tissue_std_pk_df)
+  })
+  
+# Render data table with in vitro data
+  output$clean_in_vitro_table <- DT::renderDataTable({
+    in_vitro_file <- input$in_vitro
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(in_vitro_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(in_vitro_file$name)
+    file.rename(in_vitro_file$datapath, 
+                paste(in_vitro_file$datapath, ext, sep = "."))
+    in_vitro_df <- read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
+    in_vitro_function(in_vitro_df)
+  })
+  
+######## CODE FOR RENDERING SUMMARY OF CLEAN DATA
+  
+# Render data table with summary of clean efficacy data
+  output$summary_efficacy_table <- DT::renderDataTable({
+
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(efficacy_clean)){
+      return(NULL)
+    }
+    
+  efficacy_summary_function(efficacy_clean) 
+  })  
+  
+  
 }
 
-
-
+ 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+
+# NOTES:
+# Work-around for `readxl` functions, based on: 
+# https://stackoverflow.com/questions/30624201/read-excel-in-a-shiny-app
 
