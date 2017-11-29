@@ -24,7 +24,7 @@ efficacy_function <- function(efficacy_df){
               spleen_efficacy_log = log10(spleen_efficacy))
   
   levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="Pre Rx 9 week"] <- "_Baseline"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QID"
+  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QD"
   levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
   levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
   levels(efficacy_clean$drug)[levels(efficacy_clean$drug)==""] <- "Baseline"
@@ -52,7 +52,8 @@ plasma_function <- function(plasma_df){
            Plasma_Parent) %>%
     rename(drug = Compound, 
            mouse_number = MouseID, 
-           plasma_concentration = Plasma_Parent)
+           plasma_concentration = Plasma_Parent)  %>%
+    mutate(Group = as.character(Group))
   return(plasma_clean)
 }
 
@@ -78,19 +79,24 @@ tissue_laser_function <- function(tissue_laser_df) {
 
 
 # tissue_std_pk_function cleans raw tissue std pk data in Shiny app
-tissue_std_pk_function <- function(tissue_std_pk_df){  
-  tissue_std_pk_clean <- tissue_std_pk_df %>%
-  rename(mouse_number = mice_ids) %>%
-  select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
-  rename(drug = Compound,
-         `Parent [ng/ml]` = Parent) %>% 
-  spread(key = Compartment, value = `Parent [ng/ml]`) %>% 
-  rename(SLU = Lung, 
-         SLE = Lesion) %>% 
-  mutate(SLU = as.numeric(SLU),
-         SLE = as.numeric(SLE))
+tissue_std_pk_function <- function(tissue_std_pk_df){
+  n <- nrow(tissue_std_pk_df)
+  mice_ids <- rep(c(1:(n/2)), each = 2)
+  
+  tissue_std_pk_clean <- tissue_std_pk_df %>% 
+    mutate(mouse_number = mice_ids) %>%
+    select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
+    rename(drug = Compound,
+           `Parent [ng/ml]` = Parent) %>% 
+    spread(key = Compartment, value = `Parent [ng/ml]`) %>% 
+    rename(SLU = Lung, 
+           SLE = Lesion) %>% 
+    mutate(SLU = as.numeric(SLU),
+           SLE = as.numeric(SLE))
+  
 return(tissue_std_pk_clean)
 } 
+
 
 
 # in_vitro_function cleans raw in_vitro data in Shiny app
@@ -100,15 +106,5 @@ in_vitro_function <- function(in_vitro_df){
   
 } 
 
-
-###### FUNCTIONS FOR SUMMARIZING DATA
-
-#function for summarizing efficacy_clean data
-efficacy_summary_function <- function(efficacy_clean){
-  efficacy_summary <- efficacy_clean %>% 
-    group_by(drug, dosage, days_treatment) %>% 
-    summarize(lung_efficacy_log_mean = mean(lung_efficacy_log))
-  return(efficacy_summary)
-} 
 
 

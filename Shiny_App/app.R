@@ -14,6 +14,7 @@ library(utils)
 library(dplyr)
 library(shiny)
 library(DT) 
+library(visdat)
 
 source("helper.R")
 
@@ -77,20 +78,28 @@ ui <- fluidPage(
                                        tabPanel("In Vitro",
                                                 DT::dataTableOutput("clean_in_vitro_table")
                                                )
-                           )
-                           ),
+                                   )
+                                   ),
                            
-                  tabPanel("Summary", 
+                  tabPanel("Summary of Clean  Data", 
                            tabsetPanel(type = "tabs",
                                        tabPanel("Efficacy",
-                                                DT::dataTableOutput("summary_efficacy_table")
+                                                plotOutput("summary_efficacy_plot")
+                                        ),
+                                       tabPanel("Plasma",
+                                                plotOutput("summary_plasma_plot")
                                                 ),
-                                       tabPanel("Plasma"),
-                                       tabPanel("Tissue Laser"),
-                                       tabPanel("Tissue Std PK"),
-                                       tabPanel("In Vitro")
+                                       tabPanel("Tissue Laser",
+                                                plotOutput("summary_tissue_laser_plot")
+                                                ),
+                                       tabPanel("Tissue Std PK",
+                                                plotOutput("summary_tissue_std_pk_plot")
+                                                ),
+                                       tabPanel("In Vitro",
+                                                plotOutput("summary_in_vitro_plot")
+                                                )
                            )
-                           ),
+                            ),
                   
                   tabPanel("Independent", 
                            tabsetPanel(type = "tabs",
@@ -286,18 +295,93 @@ server <- function(input, output) {
     in_vitro_function(in_vitro_df)
   })
   
-######## CODE FOR RENDERING SUMMARY OF CLEAN DATA
+######## CODE FOR RENDERING VIS DATA PLOTS OF RAW DATA
   
-# Render data table with summary of clean efficacy data
-  output$summary_efficacy_table <- DT::renderDataTable({
-
+# Render plot with summary of clean efficacy data
+  output$summary_efficacy_plot <- renderPlot({
+      efficacy_file <- input$efficacy
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file)){
+        return(NULL)
+      }
+      
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath, 
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      vis_dat(efficacy_clean)
+    }) 
+  
+# Render plot with summary of clean plasma data  
+  output$summary_plasma_plot <- renderPlot({
+    plasma_file <- input$plasma
+    
     # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(efficacy_clean)){
+    if(is.null(plasma_file)){
       return(NULL)
     }
     
-  efficacy_summary_function(efficacy_clean) 
-  })  
+    ext <- tools::file_ext(plasma_file$name)
+    file.rename(plasma_file$datapath, 
+                paste(plasma_file$datapath, ext, sep = "."))
+    plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+    plasma_clean <- plasma_function(plasma_df)
+    vis_dat(plasma_clean)
+  }) 
+
+  
+# Render plot with summary of clean tissue laser data
+  output$summary_tissue_laser_plot <- renderPlot({
+    tissue_laser_file <- input$tissue_laser
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(tissue_laser_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(tissue_laser_file$name)
+    file.rename(tissue_laser_file$datapath, 
+                paste(tissue_laser_file$datapath, ext, sep = "."))
+    tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+    tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+    vis_dat(tissue_laser_clean)
+  }) 
+  
+# Render plot with summary of clean tissue std pk data
+  output$summary_tissue_std_pk_plot <- renderPlot({
+    tissue_std_pk_file <- input$tissue_std_pk
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(tissue_std_pk_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(tissue_std_pk_file$name)
+    file.rename(tissue_std_pk_file$datapath, 
+                paste(tissue_std_pk_file$datapath, ext, sep = "."))
+    tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+    tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+    vis_dat(tissue_std_pk_clean)
+  }) 
+  
+  # Render plot with summary of clean in vitro data
+  output$summary_in_vitro_plot <- renderPlot({
+    in_vitro_file <- input$in_vitro
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(in_vitro_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(in_vitro_file$name)
+    file.rename(in_vitro_file$datapath, 
+                paste(in_vitro_file$datapath, ext, sep = "."))
+    in_vitro_df <- read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
+    in_vitro_clean <- in_vitro_function(in_vitro_df)
+    vis_dat(in_vitro_clean)
+  }) 
   
   
 }
