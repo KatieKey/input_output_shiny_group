@@ -1,11 +1,8 @@
 #
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
-#
 # Find out more about building applications with Shiny here:
-#
 #    http://shiny.rstudio.com/
-#
 
 library(readxl)
 library(readr)
@@ -37,15 +34,15 @@ ui <- fluidPage(
                            buttonLabel = "Tissue Std PK Data", multiple = TRUE, accept = ".xlsx"),
                  fileInput(label = "In Vitro", inputId = "in_vitro", 
                            buttonLabel = "In Vitro Data", multiple = TRUE, accept = ".xlsx")
-    ),
+                  ),
     
     mainPanel(width = 8,
       tabsetPanel(type = "tabs",
                   tabPanel("Raw Data Sets", 
                            tabsetPanel(type = "tabs",
                              tabPanel("Efficacy",
-                               DT::dataTableOutput("raw_efficacy_table")
-                               ),
+                                DT::dataTableOutput("raw_efficacy_table")
+                                ),
                              tabPanel("Plasma",
                                 DT::dataTableOutput("raw_plasma_table")
                                 ),
@@ -54,12 +51,12 @@ ui <- fluidPage(
                                 ),
                              tabPanel("Tissue Std PK",
                                 DT::dataTableOutput("raw_tissue_std_pk_table")
-                                 ),
+                                ),
                              tabPanel("In Vitro",
                                       DT::dataTableOutput("raw_in_vitro_table")
-                           )
-                           )
-                           ),
+                             )
+                             )
+                             ),
                            
                   tabPanel("Clean Data Set",
                            tabsetPanel(type = "tabs",
@@ -78,14 +75,14 @@ ui <- fluidPage(
                                        tabPanel("In Vitro",
                                                 DT::dataTableOutput("clean_in_vitro_table")
                                                )
-                                   )
-                                   ),
+                                           )
+                                           ),
                            
                   tabPanel("Summary of Clean  Data", 
                            tabsetPanel(type = "tabs",
                                        tabPanel("Efficacy",
                                                 plotOutput("summary_efficacy_plot")
-                                        ),
+                                                ),
                                        tabPanel("Plasma",
                                                 plotOutput("summary_plasma_plot")
                                                 ),
@@ -98,8 +95,8 @@ ui <- fluidPage(
                                        tabPanel("In Vitro",
                                                 plotOutput("summary_in_vitro_plot")
                                                 )
-                           )
-                            ),
+                                        )
+                                        ),
                   
                   tabPanel("Independent", 
                            tabsetPanel(type = "tabs",
@@ -108,8 +105,8 @@ ui <- fluidPage(
                                        tabPanel("Tissue Laser"),
                                        tabPanel("Tissue Std PK"),
                                        tabPanel("In Vitro")
-                           )
-                           ),
+                                )
+                                ),
                   
                   tabPanel("Independent ~ Dependent", 
                            tabsetPanel(type = "tabs",
@@ -127,7 +124,6 @@ ui <- fluidPage(
 
 
 
-
 #Define server logic 
 server <- function(input, output) {
   
@@ -137,7 +133,7 @@ server <- function(input, output) {
   output$raw_efficacy_table <- DT::renderDataTable({
     efficacy_file <- input$efficacy
     
-# Make sure you don't show an error by trying to run code before a file's been uploaded
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
     if(is.null(efficacy_file)){
       return(NULL)
     }
@@ -216,7 +212,7 @@ server <- function(input, output) {
 ######## CODE FOR RENDERING CLEAN DATA
   
 # Render data table with clean efficacy data
-  output$clean_efficacy_table <- DT::renderDataTable({
+    output$clean_efficacy_table <- DT::renderDataTable({
     efficacy_file <- input$efficacy
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -229,10 +225,10 @@ server <- function(input, output) {
                 paste(efficacy_file$datapath, ext, sep = "."))
     efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
     efficacy_function(efficacy_df)
-  })
+    })
   
 # Render data table with clean plasma data
-  output$clean_plasma_table <- DT::renderDataTable({
+    output$clean_plasma_table <- DT::renderDataTable({
     plasma_file <- input$plasma
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -245,10 +241,10 @@ server <- function(input, output) {
                 paste(plasma_file$datapath, ext, sep = "."))
     plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
     plasma_function(plasma_df)
-  }) 
+    }) 
 
 # Render data table with clean tissue laser data
-  output$clean_tissue_laser_table <- DT::renderDataTable({
+    output$clean_tissue_laser_table <- DT::renderDataTable({
     tissue_laser_file <- input$tissue_laser
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -261,10 +257,10 @@ server <- function(input, output) {
                 paste(tissue_laser_file$datapath, ext, sep = "."))
     tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
     tissue_laser_function(tissue_laser_df)
-  })
+    })
   
 # Render data table with clean tissue std pk data
-  output$clean_tissue_std_pk_table <- DT::renderDataTable({
+    output$clean_tissue_std_pk_table <- DT::renderDataTable({
     tissue_std_pk_file <- input$tissue_std_pk
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -277,10 +273,10 @@ server <- function(input, output) {
                 paste(tissue_std_pk_file$datapath, ext, sep = "."))
     tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
     tissue_std_pk_function(tissue_std_pk_df)
-  })
+    })
   
 # Render data table with in vitro data
-  output$clean_in_vitro_table <- DT::renderDataTable({
+    output$clean_in_vitro_table <- DT::renderDataTable({
     in_vitro_file <- input$in_vitro
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -293,12 +289,12 @@ server <- function(input, output) {
                 paste(in_vitro_file$datapath, ext, sep = "."))
     in_vitro_df <- read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
     in_vitro_function(in_vitro_df)
-  })
+    })
   
 ######## CODE FOR RENDERING VIS DATA PLOTS OF RAW DATA
   
 # Render plot with summary of clean efficacy data
-  output$summary_efficacy_plot <- renderPlot({
+      output$summary_efficacy_plot <- renderPlot({
       efficacy_file <- input$efficacy
       
       # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -312,10 +308,10 @@ server <- function(input, output) {
       efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
       efficacy_clean <- efficacy_function(efficacy_df)
       vis_dat(efficacy_clean)
-    }) 
+     }) 
   
 # Render plot with summary of clean plasma data  
-  output$summary_plasma_plot <- renderPlot({
+    output$summary_plasma_plot <- renderPlot({
     plasma_file <- input$plasma
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -329,11 +325,11 @@ server <- function(input, output) {
     plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
     plasma_clean <- plasma_function(plasma_df)
     vis_dat(plasma_clean)
-  }) 
+    }) 
 
   
 # Render plot with summary of clean tissue laser data
-  output$summary_tissue_laser_plot <- renderPlot({
+    output$summary_tissue_laser_plot <- renderPlot({
     tissue_laser_file <- input$tissue_laser
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -347,10 +343,10 @@ server <- function(input, output) {
     tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
     tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
     vis_dat(tissue_laser_clean)
-  }) 
+    }) 
   
 # Render plot with summary of clean tissue std pk data
-  output$summary_tissue_std_pk_plot <- renderPlot({
+    output$summary_tissue_std_pk_plot <- renderPlot({
     tissue_std_pk_file <- input$tissue_std_pk
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -364,10 +360,10 @@ server <- function(input, output) {
     tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
     tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
     vis_dat(tissue_std_pk_clean)
-  }) 
+    }) 
   
-  # Render plot with summary of clean in vitro data
-  output$summary_in_vitro_plot <- renderPlot({
+# Render plot with summary of clean in vitro data
+    output$summary_in_vitro_plot <- renderPlot({
     in_vitro_file <- input$in_vitro
     
     # Make sure you don't show an error by trying to run code before a file's been uploaded
@@ -381,12 +377,11 @@ server <- function(input, output) {
     in_vitro_df <- read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
     in_vitro_clean <- in_vitro_function(in_vitro_df)
     vis_dat(in_vitro_clean)
-  }) 
-  
+    }) 
   
 }
 
- 
+
 # Run the application 
 shinyApp(ui = ui, server = server)
 
