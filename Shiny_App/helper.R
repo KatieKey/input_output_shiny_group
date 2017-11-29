@@ -110,5 +110,3 @@ efficacy_summary_function <- function(efficacy_clean){
     summarize(lung_efficacy_log_mean = mean(lung_efficacy_log))
   return(efficacy_summary)
 } 
-
-
