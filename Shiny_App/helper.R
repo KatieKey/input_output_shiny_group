@@ -1,4 +1,6 @@
 # Efficacy_Function cleans "efficacy" data 
+library(dplyr)
+
 efficacy_function <- function(efficacy_df){
   efficacy_clean <- efficacy_df %>% 
     select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
@@ -7,7 +9,7 @@ efficacy_function <- function(efficacy_df){
            spleen_efficacy = Espleen,
            dosage = Drug_Dose,
            days_treatment = Days_Treatment,
-           dose_interval = Treatment_Interval,
+           dose_interval = Treatment_Interval, 
            drug = Compound) %>%
     mutate(lung_efficacy = as.numeric(lung_efficacy)) %>% 
     mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>%
@@ -34,10 +36,25 @@ efficacy_function <- function(efficacy_df){
   return(efficacy_clean)
 }
 
-# clean_las_cap function cleans the Laser Capture Excel spreadsheet
-las_file_to_clean <- "data/Gates_18_MALDI_Tissue Laser Capture R_liz_edit.xlsx"
+# plasma_function cleans "plasma" Excel spreadsheet
+plasma_function <- function(inputID){
+  clean_plasma <- plasma %>%
+    select(MouseID, 
+           Compound, 
+           Group, 
+           Protocol_Animal, 
+           Dosing, 
+           Timepoint, 
+           Plasma_Parent) %>%
+    rename(drug = Compound, 
+           mouse_number = MouseID, 
+           plasma_concentration = Plasma_Parent)
+}
 
-clean_las_cap <- function(file_to_clean) {
+
+# clean_las_cap function cleans the Laser Capture Excel spreadsheet
+
+tissue_laser_function <- function(file_to_clean) {
   
   las_cap <- read_xlsx(file_to_clean) %>%
     rename(`Parent [ng/ml]` = Parent) %>%
@@ -55,24 +72,10 @@ clean_las_cap <- function(file_to_clean) {
   return(las_cap)
 }
 
-# plasma_function cleans "plasma" Excel spreadsheet
-plasma_function <- function(inputID){
-  clean_plasma <- plasma %>%
-    select(MouseID, 
-           Compound, 
-           Group, 
-           Protocol_Animal, 
-           Dosing, 
-           Timepoint, 
-           Plasma_Parent) %>%
-    rename(drug = Compound, 
-           mouse_number = MouseID, 
-           plasma_concentration = Plasma_Parent)
-}
 
 
 # pk_function cleans PK data
-pk_clean <- function(pk_data){  
+tissue_std_pk_function <- function(pk_data){  
   pk <- pk %>% 
   mutate(mouse_number = mice_ids) %>%
   select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
@@ -85,3 +88,9 @@ pk_clean <- function(pk_data){
          SLE = as.numeric(SLE))
 return(pk)
 } 
+
+#in_vitro_function cleans in_vitro data
+in_vitro_function <- function(in_vitro_data){
+  return(in_vitro_data)
+  
+}

@@ -13,7 +13,7 @@ library(tidyr)
 library(utils) 
 library(dplyr)
 library(shiny)
-library(DT)
+library(DT) 
 
 source("helper.R")
 
@@ -57,7 +57,9 @@ ui <- fluidPage(
                              tabPanel("In Vitro",
                                       DT::dataTableOutput("raw_in_vitro_table")
                            )
+                           )
                            ),
+                           
                   tabPanel("Clean Data Set",
                            tabsetPanel(type = "tabs",
                                        tabPanel("Efficacy",
@@ -75,7 +77,9 @@ ui <- fluidPage(
                                        tabPanel("In Vitro",
                                                 DT::dataTableOutput("clean_in_vitro_table")
                                                )
+                           )
                            ),
+                           
                   tabPanel("Summary", 
                            tabsetPanel(type = "tabs",
                                        tabPanel("Efficacy"),
@@ -85,6 +89,7 @@ ui <- fluidPage(
                                        tabPanel("In Vitro")
                            )
                            ),
+                  
                   tabPanel("Independent", 
                            tabsetPanel(type = "tabs",
                                        tabPanel("Efficacy"),
@@ -94,6 +99,7 @@ ui <- fluidPage(
                                        tabPanel("In Vitro")
                            )
                            ),
+                  
                   tabPanel("Independent ~ Dependent", 
                            tabsetPanel(type = "tabs",
                                        tabPanel("Efficacy"),
@@ -102,11 +108,14 @@ ui <- fluidPage(
                                        tabPanel("Tissue Std PK"),
                                        tabPanel("In Vitro")
                            )
-  )
-  )
-  )
+                  )
+                  )
+                  )
       )
     )
+
+
+
 
 #Define server logic 
 server <- function(input, output) {
@@ -216,8 +225,77 @@ server <- function(input, output) {
     efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
     efficacy_function(efficacy_df)
   })
+  
+  # Render data table with clean plasma data
+  output$clean_plasma_table <- DT::renderDataTable({
+    plasma_file <- input$plasma
+    
+    # Make sure you don't show an error by trying to run code before 
+    # a file's been uploaded
+    if(is.null(plasma_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(plasma_file$name)
+    file.rename(plasma_file$datapath, 
+                paste(plasma_file$datapath, ext, sep = "."))
+    plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+    plasma_function(plasma_df)
+  })
 
-  }
+# Render data table with clean tissue laser data
+  output$clean_tissue_laser_table <- DT::renderDataTable({
+    tissue_laser_file <- input$tissue_laser
+    
+    # Make sure you don't show an error by trying to run code before 
+    # a file's been uploaded
+    if(is.null(tissue_laser_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(tissue_laser_file$name)
+    file.rename(tissue_laser_file$datapath, 
+                paste(tissue_laser_file$datapath, ext, sep = "."))
+    tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+    tissue_laser_function(tissue_laser_df)
+  })
+  
+  # Render data table with clean tissue std pk data
+  output$clean_tissue_std_pk_table <- DT::renderDataTable({
+    tissue_std_pk_file <- input$tissue_std_pk
+    
+    # Make sure you don't show an error by trying to run code before 
+    # a file's been uploaded
+    if(is.null(tissue_std_pk_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(tissue_std_pk_file$name)
+    file.rename(tissue_std_pk_file$datapath, 
+                paste(tissue_std_pk_file$datapath, ext, sep = "."))
+    tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+    tissue_std_pk_function(tissue_std_pk_df)
+  })
+  
+# Render data table with in vitro data
+  output$clean_in_vitro_table <- DT::renderDataTable({
+    in_vitro_file <- input$in_vitro
+    
+    # Make sure you don't show an error by trying to run code before 
+    # a file's been uploaded
+    if(is.null(in_vitro_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(in_vitro_file$name)
+    file.rename(in_vitro_file$datapath, 
+                paste(in_vitro_file$datapath, ext, sep = "."))
+    in_vitro_df <- read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
+    in_vitro_function(in_vitro_df)
+  })
+  
+  
+}
 
 
 # Run the application 
