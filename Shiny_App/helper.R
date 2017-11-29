@@ -99,3 +99,16 @@ in_vitro_function <- function(in_vitro_df){
   return(in_vitro_clean)
   
 } 
+
+
+###### FUNCTIONS FOR SUMMARIZING DATA
+
+#function for summarizing efficacy_clean data
+efficacy_summary_function <- function(efficacy_clean){
+  efficacy_summary <- efficacy_clean %>% 
+    group_by(drug, dosage, days_treatment) %>% 
+    summarize(lung_efficacy_log_mean = mean(lung_efficacy_log))
+  return(efficacy_summary)
+} 
+
+

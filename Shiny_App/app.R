@@ -82,7 +82,9 @@ ui <- fluidPage(
                            
                   tabPanel("Summary", 
                            tabsetPanel(type = "tabs",
-                                       tabPanel("Efficacy"),
+                                       tabPanel("Efficacy",
+                                                DT::dataTableOutput("summary_efficacy_table")
+                                                ),
                                        tabPanel("Plasma"),
                                        tabPanel("Tissue Laser"),
                                        tabPanel("Tissue Std PK"),
@@ -283,6 +285,19 @@ server <- function(input, output) {
     in_vitro_df <- read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
     in_vitro_function(in_vitro_df)
   })
+  
+######## CODE FOR RENDERING SUMMARY OF CLEAN DATA
+  
+# Render data table with summary of clean efficacy data
+  output$summary_efficacy_table <- DT::renderDataTable({
+
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(efficacy_clean)){
+      return(NULL)
+    }
+    
+  efficacy_summary_function(efficacy_clean) 
+  })  
   
   
 }
