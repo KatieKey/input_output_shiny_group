@@ -241,7 +241,7 @@ server <- function(input, output) {
                 paste(plasma_file$datapath, ext, sep = "."))
     plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
     plasma_function(plasma_df)
-  })
+  }) 
 
 # Render data table with clean tissue laser data
   output$clean_tissue_laser_table <- DT::renderDataTable({
@@ -297,7 +297,7 @@ server <- function(input, output) {
   
 }
 
-
+ 
 # Run the application 
 shinyApp(ui = ui, server = server)
 

@@ -37,8 +37,8 @@ efficacy_function <- function(efficacy_df){
 }
 
 # plasma_function cleans "plasma" Excel spreadsheet
-plasma_function <- function(inputID){
-  clean_plasma <- plasma %>%
+plasma_function <- function(plasma_df){
+  plasma_clean <- plasma_df %>%
     select(MouseID, 
            Compound, 
            Group, 
@@ -49,35 +49,35 @@ plasma_function <- function(inputID){
     rename(drug = Compound, 
            mouse_number = MouseID, 
            plasma_concentration = Plasma_Parent)
+  return(plasma_clean)
 }
 
 
-# clean_las_cap function cleans the Laser Capture Excel spreadsheet
+# tissue_laser_ function cleans the Laser Capture Excel spreadsheet
 
-tissue_laser_function <- function(file_to_clean) {
-  
-  las_cap <- read_xlsx(file_to_clean) %>%
+tissue_laser_function <- function(tissue_laser_df) {
+  tissue_laser_clean <- tissue_laser_df %>%
     rename(`Parent [ng/ml]` = Parent) %>%
     select(-StudyID, -Metabolite, - Units, - Collection, - `Sample ID`)
   
-  n <- nrow(las_cap)
+  n <- nrow(tissue_laser_clean)
   mice_ids <- rep(c(1:(n/4)), each = 4)
   
-  las_cap <- mutate(las_cap, MouseID = mice_ids) %>%
+  tissue_laser_clean <- mutate(tissue_laser_clean, MouseID = mice_ids) %>%
     spread(key = Compartment, value = `Parent [ng/ml]`) %>%
     rename(ULU = `uninvolved lung`, RIM = rim,
            OCS = `outer caseum`, ICS = `inner caseum`) %>%
     mutate(ULU = as.numeric(ULU), RIM = as.numeric(RIM),
            OCS = as.numeric(OCS), ICS = as.numeric(ICS))
-  return(las_cap)
+  return(tissue_laser_clean)
 }
 
 
 
 # pk_function cleans PK data
-tissue_std_pk_function <- function(pk_data){  
-  pk <- pk %>% 
-  mutate(mouse_number = mice_ids) %>%
+tissue_std_pk_function <- function(tissue_std_pk_df){  
+  tissue_std_pk_clean <- tissue_std_pk_df %>%
+  rename(mouse_number = mice_ids) %>%
   select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
   rename(drug = Compound,
          `Parent [ng/ml]` = Parent) %>% 
@@ -86,11 +86,12 @@ tissue_std_pk_function <- function(pk_data){
          SLE = Lesion) %>% 
   mutate(SLU = as.numeric(SLU),
          SLE = as.numeric(SLE))
-return(pk)
+return(tissue_std_pk_clean)
 } 
 
 #in_vitro_function cleans in_vitro data
-in_vitro_function <- function(in_vitro_data){
-  return(in_vitro_data)
+in_vitro_function <- function(in_vitro_df){
+  in_vitro_clean <- in_vitro_df 
+  return(in_vitro_clean)
   
-}
+} 
