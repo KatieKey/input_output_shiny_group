@@ -29,7 +29,7 @@ efficacy_function <- function(efficacy_df){
   levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
   levels(efficacy_clean$drug)[levels(efficacy_clean$drug)==""] <- "Baseline"
   
-  
+   
   efficacy_clean <- efficacy_clean %>% 
     unite(days_dose, days_treatment, dose_interval, sep = "") %>% 
     separate(days_dose, c("days", "dose"), sep = "_") %>% 
@@ -106,16 +106,5 @@ in_vitro_function <- function(in_vitro_df){
 } 
 
 
-<<<<<<< HEAD
-###### FUNCTIONS FOR SUMMARIZING DATA
 
-#function for summarizing efficacy_clean data
-efficacy_summary_function <- function(efficacy_clean){
-  efficacy_summary <- efficacy_clean %>% 
-    group_by(drug, dosage, days_treatment) %>% 
-    summarize(lung_efficacy_log_mean = mean(lung_efficacy_log))
-  return(efficacy_summary)
-} 
-=======
 
->>>>>>> 759f45c36b302929f5bd6c83d67797f614a7c93a
