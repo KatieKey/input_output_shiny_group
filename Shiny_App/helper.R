@@ -1,4 +1,4 @@
-#Efficacy_Function cleans "efficacy" data and outputs a cleaned version of that Excel spreadsheet 
+# Efficacy_Function cleans "efficacy" data 
 efficacy_function <- function(efficacy_df){
   efficacy_clean <- efficacy_df %>% 
     select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
@@ -34,7 +34,7 @@ efficacy_function <- function(efficacy_df){
   return(efficacy_clean)
 }
 
-#clean_las_cap function cleans the Laser Capture Excel spreadsheet
+# clean_las_cap function cleans the Laser Capture Excel spreadsheet
 las_file_to_clean <- "data/Gates_18_MALDI_Tissue Laser Capture R_liz_edit.xlsx"
 
 clean_las_cap <- function(file_to_clean) {
@@ -55,3 +55,33 @@ clean_las_cap <- function(file_to_clean) {
   return(las_cap)
 }
 
+# plasma_function cleans "plasma" Excel spreadsheet
+plasma_function <- function(inputID){
+  clean_plasma <- plasma %>%
+    select(MouseID, 
+           Compound, 
+           Group, 
+           Protocol_Animal, 
+           Dosing, 
+           Timepoint, 
+           Plasma_Parent) %>%
+    rename(drug = Compound, 
+           mouse_number = MouseID, 
+           plasma_concentration = Plasma_Parent)
+}
+
+
+# pk_function cleans PK data
+pk_clean <- function(pk_data){  
+  pk <- pk %>% 
+  mutate(mouse_number = mice_ids) %>%
+  select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
+  rename(drug = Compound,
+         `Parent [ng/ml]` = Parent) %>% 
+  spread(key = Compartment, value = `Parent [ng/ml]`) %>% 
+  rename(SLU = Lung, 
+         SLE = Lesion) %>% 
+  mutate(SLU = as.numeric(SLU),
+         SLE = as.numeric(SLE))
+return(pk)
+} 
