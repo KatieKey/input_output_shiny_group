@@ -1,8 +1,8 @@
 
 
-####### FUNCTIONS FOR CLEANING RAW DATA FILES
+# FUNCTIONS FOR CLEANING RAW DATA FILES
 
-# efficacy_function cleans raw efficacy data in Shiny app
+#### efficacy_function cleans raw efficacy data in Shiny app
 library(dplyr)
 
 efficacy_function <- function(efficacy_df){
@@ -40,7 +40,8 @@ efficacy_function <- function(efficacy_df){
   return(efficacy_clean)
 }
 
-# plasma_function cleans raw plasma data in Shiny app
+
+#### plasma_function cleans raw plasma data in Shiny app
 plasma_function <- function(plasma_df){
   plasma_clean <- plasma_df %>%
     select(MouseID, 
@@ -58,7 +59,7 @@ plasma_function <- function(plasma_df){
 }
 
 
-# tissue_laser_function cleans raw tissue laser data in Shiny app
+##### tissue_laser_function cleans raw tissue laser data in Shiny app
 tissue_laser_function <- function(tissue_laser_df) {
   tissue_laser_clean <- tissue_laser_df %>%
     rename(`Parent [ng/ml]` = Parent) %>%
@@ -78,7 +79,7 @@ tissue_laser_function <- function(tissue_laser_df) {
 
 
 
-# tissue_std_pk_function cleans raw tissue std pk data in Shiny app
+##### tissue_std_pk_function cleans raw tissue std pk data in Shiny app
 tissue_std_pk_function <- function(tissue_std_pk_df){
   n <- nrow(tissue_std_pk_df)
   mice_ids <- rep(c(1:(n/2)), each = 2)
@@ -93,17 +94,15 @@ tissue_std_pk_function <- function(tissue_std_pk_df){
            SLE = Lesion) %>% 
     mutate(SLU = as.numeric(SLU),
            SLE = as.numeric(SLE))
-  
 return(tissue_std_pk_clean)
 } 
 
 
 
-# in_vitro_function cleans raw in_vitro data in Shiny app
+###### in_vitro_function cleans raw in_vitro data in Shiny app
 in_vitro_function <- function(in_vitro_df){
   in_vitro_clean <- in_vitro_df 
   return(in_vitro_clean)
-  
 } 
 
 
