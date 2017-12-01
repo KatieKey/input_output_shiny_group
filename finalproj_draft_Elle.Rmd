@@ -1,0 +1,17 @@
+---
+title: "Final Project Draft Report"
+author: "Elle Holbrook"
+date: "December 1, 2017"
+output: word_document
+---
+
+A brief report (4 to 5 pages) describing how the group tackled their problem, what pieces were particularly challenging and how they tackled those, what they would do differently if they started fresh, and what interesting things they found in this set of data. 
+
+Description of creating the tidy efficacy summary
+Description of cleaning the standard PK template
+
+Challenges: dosage data missing, difficult to relate information between tables (assumptions made)
+
+Do differently: more communication with other groups sooner
+
+Interesting things in data: 
