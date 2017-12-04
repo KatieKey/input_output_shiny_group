@@ -43,7 +43,9 @@ efficacy_function <- function(efficacy_df){
 
 #### plasma_function cleans raw plasma data in Shiny app
 #Function Title: Cleaning Plasma Dataframe
-#This function 
+#This function has a dataframe as an argument. The dataframe contains data on plasma
+#concentrations. The function cleans the plasma dataframe by selecting only the needed
+#variables, renaming variables, and changing the group column to a character.
 plasma_function <- function(plasma_df){
   plasma_clean <- plasma_df %>%
     select(MouseID, 
@@ -84,6 +86,8 @@ tissue_laser_function <- function(tissue_laser_df) {
 
 
 ##### tissue_std_pk_function cleans raw tissue std pk data in Shiny app
+#Function Title: Clean STD PK Dataframe
+
 tissue_std_pk_function <- function(tissue_std_pk_df){
   n <- nrow(tissue_std_pk_df)
   mice_ids <- rep(c(1:(n/2)), each = 2)
