@@ -52,5 +52,6 @@ plasma_function <- function(inputID){
   rename(drug = Compound, 
          mouse_number = MouseID, 
          plasma_concentration = Plasma_Parent)
+  mutate(Group = as.character(Group))
 }
 ```
