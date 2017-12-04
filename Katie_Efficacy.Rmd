@@ -9,7 +9,7 @@ mouse_id, compound, group, protocol_animal,
 drug_dose, formulation, dose_frequency, days_treatment combined with treatment_interval
 
 
-```{r, warning=FALSE,echo=FALSE,message=FALSE}
+```{r, warning=FALSE,echo=TRUE,message=FALSE}
 
 library(readxl)
 library(readr)
@@ -20,9 +20,9 @@ library(utils)
 ```
 
 
-```{r, warning=FALSE,echo=FALSE,message=FALSE}
+```{r, warning=FALSE,echo=TRUE,message=FALSE}
 
-efficacy <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
+efficacy <- read_excel("data/Gates_18 Efficacy R spreadsheet.xlsx")
 
 efficacy_clean <- efficacy %>% 
   select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
@@ -60,12 +60,12 @@ write_csv(efficacy_clean, path = paste0(getwd(), "/CSV_Files/clean_efficacy.csv"
 ```
 
 
-```{r, warning=FALSE,echo=FALSE,message=FALSE}
+```{r, warning=FALSE,echo=TRUE,message=FALSE}
 
 # put this as a fileupload widget in the app ?
 
 
-efficacy_data <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
+efficacy_data <- read_excel("data/Gates_18 Efficacy R spreadsheet.xlsx")
 
 efficacy_function <- function(efficacy_input){
   efficacy_clean <- efficacy_input %>% 
