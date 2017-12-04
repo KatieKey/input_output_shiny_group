@@ -3,6 +3,14 @@
 # FUNCTIONS FOR CLEANING RAW DATA FILES
 
 #### efficacy_function cleans raw efficacy data in Shiny app
+# Function Title: Cleaning Efficacy Dataframe
+
+# This function uses the file input from the fileInput widget for "efficacy" as the argument. 
+# The dataframe explores lung and spleen efficacies by drug, days of treatment, and dosage. The function 
+# cleans the plasma dataframe by first removing columns that are repeating (i.e., units) and putting
+# the efficacy values into a log value for easier comprehension. Further, the dosage and days_treatment columns
+# were cleaned by changing the factor names in order to compare by dosage and include controls in this analysis.
+
 library(dplyr)
 
 efficacy_function <- function(efficacy_df){
