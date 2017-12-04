@@ -13,7 +13,8 @@ library(shiny)
 library(DT) 
 library(visdat)
 
-source("helper.R")
+source("group_1_functions.R")
+source("other_groups_functions.R")
 
 
 # Define UI for application 
