@@ -8,13 +8,14 @@ runtime: shiny
 
 ##Outline for Presentation:
 
-- what we did
-- overview of each data set and how we "tidyed" it
-- Shiny app
-- challenges
-- do differently
-- interesting
-- conclusion
+1. Rationale for what we did
+2. Idea development
+3. Overview of datasets and tidying process
+4. Shiny app development
+5. Challenges
+6. What we would do differently
+7. Interesting
+8. Conclusions
 
 ########################
 
