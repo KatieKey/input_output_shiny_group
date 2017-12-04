@@ -4,10 +4,10 @@ author: "Elle Holbrook, Katie Key, Brian Kim, Lizette Van Zyl"
 output: ioslides_presentation
 runtime: shiny
 ---
+####################
 
+##Outline for Presentation:
 
-Outline for Presentation:
-================
 - what we did
 - overview of each data set and how we "tidyed" it
 - Shiny app
@@ -16,28 +16,30 @@ Outline for Presentation:
 - interesting
 - conclusion
 
+########################
 
-Our group was tasked with:
-================
+## Our group was tasked with:
+
 - inputting the Excel files received from the research group
 - outputting the data in "tidy" formats
 - developing the Shiny app
 
+########################
 
-Data sets:
-================
+##Data sets:
 
 - Efficacy (Katie)
 - Plasma (Brian)
 - Tissue Laser (Lizette)
 - Tissue Standard PK (Elle)
 
+########################
 
-Shiny App
-================
+##Shiny App
 
 
-```{r, echo=FALSE, warning=FALSE,message=FALSE, fig.height=4, fig.width=6}
+
+```{r, echo=FALSE, warning=FALSE,message=FALSE, fig.height=4, fig.width=8}
 
 library(readxl)
 library(readr)
@@ -158,7 +160,7 @@ ui <- fluidPage(
   helpText("Upload Data and Explore Data Tables and Graphs Using the Tabs Below"),
   
   sidebarLayout(
-    sidebarPanel(width = 3, (label = h3("Upload Data")),
+    sidebarPanel(width = 4, (label = h3("Upload Data")),
                  
                  fileInput(label = "Efficacy", inputId = "efficacy",
                            buttonLabel = "Efficacy Data", multiple = TRUE, accept = ".xlsx"),
@@ -522,26 +524,30 @@ shinyApp(ui = ui, server = server)
 
 ```
 
+########################
 
 
-Challenges
-================
+## Challenges
 
 
 
+########################
 
-Do Differently
-================
-
-
-Interesting
-================
+##Do Differently
 
 
 
 
-Conclusion
-================
+########################
+
+##Interesting
+
+
+
+
+########################
+
+##Conclusion
 
 
 
