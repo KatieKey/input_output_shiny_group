@@ -35,100 +35,117 @@ Data sets:
 Efficacy Template
 ========================================================
 
-```{r, echo=FALSE, fig.width=4, fig.height = 3}
-library(readxl)
-library(readr)
-library(tidyr)
-library(dplyr)
-library(utils)
 
-efficacy <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
-
-head(efficacy, 6)
-
-
+```
+# A tibble: 6 x 19
+         StudyID MouseID Compound Group Protocol_Animal Drug_Dose
+           <chr>   <chr>    <chr> <chr>           <chr>     <chr>
+1 Gates_18 effic     001       NA PreRX               A        NA
+2 Gates_18 effic     002       NA PreRX               B        NA
+3 Gates_18 effic     003       NA PreRX               C        NA
+4 Gates_18 effic     004       NA PreRX               D        NA
+5 Gates_18 effic     005       NA PreRX               E        NA
+6 Gates_18 effic     006       NA PreRX               F        NA
+# ... with 13 more variables: Dose_Units <chr>, Formulation <chr>,
+#   Dose_Frequency <chr>, Days_Treatment <dbl>, Treatment_Interval <chr>,
+#   Elung <chr>, `Elung LLOD` <dbl>, Elung_Units <chr>, Espleen <chr>,
+#   `Espleen LLOD` <dbl>, Espleen_Units <chr>, `% Res` <lgl>,
+#   `42794` <lgl>
 ```
 
 Tidy Efficacy
 ========================================================
 
-```{r, echo=FALSE}
 
-efficacy_clean <- efficacy %>% 
-  select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
-         Treatment_Interval,Elung,Espleen) %>% 
-  rename(lung_efficacy = Elung,
-         spleen_efficacy = Espleen,
-         dosage = Drug_Dose,
-         days_treatment = Days_Treatment,
-         dose_interval = Treatment_Interval,
-         drug = Compound) %>%
-  mutate(lung_efficacy = as.numeric(lung_efficacy)) %>% 
-  mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>%
-  mutate(dose_interval = as.factor(dose_interval)) %>%
-  mutate(days_treatment = as.factor(days_treatment)) %>% 
-  group_by(Protocol_Animal, drug, Group, dosage, days_treatment, dose_interval) %>% 
-  summarize(lung_efficacy_log = log10(lung_efficacy),
-            spleen_efficacy_log = log10(spleen_efficacy))
-
-levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="Pre Rx 9 week"] <- "_Baseline"
-levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QD"
-levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
-levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
-
-efficacy_clean <- efficacy_clean %>% 
-  unite(days_dose, days_treatment, dose_interval, sep = "") %>% 
-  separate(days_dose, c("days", "dose"), sep = "_") %>% 
-  rename("days_treatment" = days,
-         "dose_interval" = dose) %>% 
-  mutate(days_treatment = as.numeric(days_treatment))
-
-head(efficacy_clean, 6)
-
-
+```
+# A tibble: 6 x 8
+# Groups:   Protocol_Animal, drug, Group, dosage [4]
+  Protocol_Animal  drug Group dosage days_treatment dose_interval
+            <chr> <chr> <chr>  <chr>          <dbl>         <chr>
+1               A    NA PreRX     NA              0      Baseline
+2               A   RBT     5     10             20            QD
+3               A   RBT     5     10             40            QD
+4               A   RIF     2     10             20            QD
+5               A   RIF     2     10             40            QD
+6               A   RIF     3     20             20            QD
+# ... with 2 more variables: lung_efficacy_log <dbl>,
+#   spleen_efficacy_log <dbl>
 ```
 
 
 Plasma Template
 ========================================================
 
-```{r}
+
+```r
 summary(cars)
+```
+
+```
+     speed           dist       
+ Min.   : 4.0   Min.   :  2.00  
+ 1st Qu.:12.0   1st Qu.: 26.00  
+ Median :15.0   Median : 36.00  
+ Mean   :15.4   Mean   : 42.98  
+ 3rd Qu.:19.0   3rd Qu.: 56.00  
+ Max.   :25.0   Max.   :120.00  
 ```
 
 Tidy Plasma
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
-```
+![plot of chunk unnamed-chunk-4](Presentation-figure/unnamed-chunk-4-1.png)
 
 Tissue Laser Template
 ========================================================
 
-```{r}
+
+```r
 summary(cars)
+```
+
+```
+     speed           dist       
+ Min.   : 4.0   Min.   :  2.00  
+ 1st Qu.:12.0   1st Qu.: 26.00  
+ Median :15.0   Median : 36.00  
+ Mean   :15.4   Mean   : 42.98  
+ 3rd Qu.:19.0   3rd Qu.: 56.00  
+ Max.   :25.0   Max.   :120.00  
 ```
 
 Tidy Tissue Laser
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
-```
+![plot of chunk unnamed-chunk-6](Presentation-figure/unnamed-chunk-6-1.png)
 
 Tissue Standard PK Template
 ========================================================
 
-```{r}
+
+```r
 summary(cars)
+```
+
+```
+     speed           dist       
+ Min.   : 4.0   Min.   :  2.00  
+ 1st Qu.:12.0   1st Qu.: 26.00  
+ Median :15.0   Median : 36.00  
+ Mean   :15.4   Mean   : 42.98  
+ 3rd Qu.:19.0   3rd Qu.: 56.00  
+ Max.   :25.0   Max.   :120.00  
 ```
 
 Tidy Tissue Standard PK
 ========================================================
 
-```{r, echo=FALSE}
-plot(cars)
-```
+![plot of chunk unnamed-chunk-8](Presentation-figure/unnamed-chunk-8-1.png)
+
+
+Shiny App
+========================================================
+
+
 
 
