@@ -12,10 +12,12 @@ library(dplyr)
 library(shiny)
 library(DT) 
 library(visdat)
+library(ggplot2)
+library(ggthemes)
+library(rpart)
 
 source("helper.R")
-source("other_groups_functions.R")
-
+source("Group3Functions.R")
 
 # Define UI for application 
 ui <- fluidPage(
@@ -33,9 +35,7 @@ ui <- fluidPage(
                  fileInput(label = "Tissue Laser", inputId = "tissue_laser", 
                            buttonLabel = "Tissue Laser Data", multiple = TRUE, accept = ".xlsx"),
                  fileInput(label = "Tissue Std PK", inputId = "tissue_std_pk", 
-                           buttonLabel = "Tissue Std PK Data", multiple = TRUE, accept = ".xlsx"),
-                 fileInput(label = "In Vitro", inputId = "in_vitro", 
-                           buttonLabel = "In Vitro Data", multiple = TRUE, accept = ".xlsx")
+                           buttonLabel = "Tissue Std PK Data", multiple = TRUE, accept = ".xlsx")
                   ),
     
     mainPanel(width = 8,
@@ -53,12 +53,9 @@ ui <- fluidPage(
                                 ),
                              tabPanel("Tissue Std PK",
                                 DT::dataTableOutput("raw_tissue_std_pk_table")
+                                )
+                                )
                                 ),
-                             tabPanel("In Vitro",
-                                      DT::dataTableOutput("raw_in_vitro_table")
-                             )
-                             )
-                             ),
                            
                   tabPanel("Clean Data Set",
                            tabsetPanel(type = "tabs",
@@ -74,8 +71,9 @@ ui <- fluidPage(
                                        tabPanel("Tissue Std PK",
                                                 DT::dataTableOutput("clean_tissue_std_pk_table")
                                                 ),
-                                       tabPanel("In Vitro",
-                                                DT::dataTableOutput("clean_in_vitro_table")
+                                       tabPanel("Efficacy Summary",
+                                                helpText("Used for Beeswarm Data in 'Independent' Tab"),
+                                                DT::dataTableOutput("clean_efficacy_summary_table")
                                                )
                                            )
                                            ),
@@ -93,30 +91,52 @@ ui <- fluidPage(
                                                 ),
                                        tabPanel("Tissue Std PK",
                                                 plotOutput("summary_tissue_std_pk_plot")
-                                                ),
-                                       tabPanel("In Vitro",
-                                                plotOutput("summary_in_vitro_plot")
                                                 )
                                         )
                                         ),
                   
                   tabPanel("Independent", 
                            tabsetPanel(type = "tabs",
-                                       tabPanel("Efficacy"),
-                                       tabPanel("Plasma"),
-                                       tabPanel("Tissue Laser"),
-                                       tabPanel("Tissue Std PK"),
-                                       tabPanel("In Vitro")
+                                       tabPanel("Beeswarm",
+                                checkboxGroupInput("CheckBeeVarInVitro", 
+                                label = h3("Check Variables To Explore"), 
+                                choices = list("Caseum_binding" = efficacy_summary_file$Caseum_binding, 
+                                               "cLogP" = efficacy_summary_file$cLogP,
+                                               "huPPB" = efficacy_summary_file$huPPB,
+                                               "muPPB" = efficacy_summary_file$muPPB,
+                                               "MIC_Erdman" = efficacy_summary_file$MIC_Erdman,
+                                               "MICserumErd" = efficacy_summary_file$MICserumErd,
+                                               "MIC_Rv" = efficacy_summary_file$MIC_Rv,
+                                               "MacUptake" = efficacy_summary_file$MacUptake)
+                                  ),
+                                checkboxGroupInput("CheckBeeDrugInVitro", 
+                                 label = h3("Check Drugs To Explore"), 
+                                 choices = list("DRUG1" = 1, "DRUG2" = 2, 
+                                                "DRUG3" = 3,
+                                 "DRUG4" = 4, "DRUG5" = 5, "DRUG6" = 6,
+                                 "DRUG7" = 7, "DRUG8" = 8, "DRUG9" = 9,
+                                 "DRUG10" = 10, "DRUG11" = 11)
+                                 ),
+                                 plotOutput("beeswarm_invitro_plot")
+                                 ),
+                                       tabPanel("Plot2"),
+                                       tabPanel("Plot3")
                                 )
                                 ),
                   
                   tabPanel("Independent ~ Dependent", 
                            tabsetPanel(type = "tabs",
-                                       tabPanel("Efficacy"),
-                                       tabPanel("Plasma"),
-                                       tabPanel("Tissue Laser"),
-                                       tabPanel("Tissue Std PK"),
-                                       tabPanel("In Vitro")
+                                       tabPanel("RegressionTree",
+                                                radioButtons("regression", label = "Pick a Variable",
+                                                             choices = list("Lung Efficacy" = efficacy_summary_file$ELU,
+                                                                         "Spleen Efficacy" = efficacy_summary_file$ESP)
+                                                             ),
+                                                plotOutput("regression_tree")
+                                                ),
+                                       tabPanel("Drews"),
+                                       tabPanel("KateScatter"),
+                                       tabPanel("KateCoefficient"),
+                                       tabPanel("Maggie")
                            )
                   )
                   )
@@ -195,18 +215,18 @@ server <- function(input, output) {
     })
     
 # Render data table for raw in vitro data
-    output$raw_in_vitro_table <- DT::renderDataTable({
-      in_vitro_file <- input$in_vitro
+    output$raw_efficacy_summary_table <- DT::renderDataTable({
+      efficacy_summary_file <- input$efficacy_summary
       
       # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(in_vitro_file)){
+      if(is.null(efficacy_summary_file)){
         return(NULL)
       }
       
-      ext <- tools::file_ext(in_vitro_file$name)
-      file.rename(in_vitro_file$datapath, 
-                  paste(in_vitro_file$datapath, ext, sep = "."))
-      read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
+      ext <- tools::file_ext(efficacy_summary_file$name)
+      file.rename(efficacy_summary_file$datapath, 
+                  paste(efficacy_summary_file$datapath, ext, sep = "."))
+      read_excel(paste(efficacy_summary_file$datapath, ext, sep = "."), sheet = 1)
       
     })
     
@@ -277,20 +297,15 @@ server <- function(input, output) {
     tissue_std_pk_function(tissue_std_pk_df)
     })
   
-# Render data table with in vitro data
-    output$clean_in_vitro_table <- DT::renderDataTable({
-    in_vitro_file <- input$in_vitro
-    
+# Render data table with cleaned efficacy summary data
+    output$clean_efficacy_summary_table <- DT::renderDataTable({ input$efficacy_summary_file
     # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(in_vitro_file)){
+    if(is.null(efficacy_summary_file)){
       return(NULL)
     }
-    
-    ext <- tools::file_ext(in_vitro_file$name)
-    file.rename(in_vitro_file$datapath, 
-                paste(in_vitro_file$datapath, ext, sep = "."))
-    in_vitro_df <- read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
-    in_vitro_function(in_vitro_df)
+      efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
+                                      "master/CSV_Files/efficacy_summary.csv")
+      efficacy_summary_file <- read_csv(efficacy_summary_file_1)
     })
   
 ######## CODE FOR RENDERING VIS DATA PLOTS OF RAW DATA
@@ -364,23 +379,31 @@ server <- function(input, output) {
     vis_dat(tissue_std_pk_clean)
     }) 
   
-# Render plot with summary of clean in vitro data
-    output$summary_in_vitro_plot <- renderPlot({
-    in_vitro_file <- input$in_vitro
     
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(in_vitro_file)){
-      return(NULL)
-    }
+#####INDEPENDENT GROUPS FUNCTIONS
+    #CheckBeeDrugInVitro
+    #CheckBeeVarInVitro
     
-    ext <- tools::file_ext(in_vitro_file$name)
-    file.rename(in_vitro_file$datapath, 
-                paste(in_vitro_file$datapath, ext, sep = "."))
-    in_vitro_df <- read_excel(paste(in_vitro_file$datapath, ext, sep = "."), sheet = 1)
-    in_vitro_clean <- in_vitro_function(in_vitro_df)
-    vis_dat(in_vitro_clean)
+    output$beeswarm_invitro_plot <- renderPlot({
+    
+
+    return(efficacy_summary_file)
+    
+    })
+   
+    
+######INDEPENDENT DEPENDENT GROUP FUNCTIONS
+    output$regression_tree <- renderPlot({
+
+      if(is.null(efficacy_summary_file)){
+        return(NULL)
+      }
+      
+      dep_var <- input$regression
+      regression_tree_function(dep_var, efficacy_summary_file)
+ 
     }) 
-  
+    
 }
 
 
@@ -388,7 +411,4 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server)
 
 
-# NOTES:
-# Work-around for `readxl` functions, based on: 
-# https://stackoverflow.com/questions/30624201/read-excel-in-a-shiny-app
 

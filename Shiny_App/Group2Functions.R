@@ -1,6 +1,8 @@
 
 library(shiny)
 
+#Alexia's Functions: https://github.com/leskia29/group_2
+
 # put back into Shiny app:
 # source("other_groups_functions.R")
 # fix "drug" checkbox
