@@ -528,27 +528,27 @@ shinyApp(ui = ui, server = server)
 
 
 ## Challenges
--differences between spreadsheets
--what information research group wanted
--Shiny app
+- differences between spreadsheets  
+- what information research group wanted  
+- Shiny app  
 
 ########################
 
 ##Do Differently
--communicate with research group earlier on
--communicate with other groups for efficiency
+- communicate with research group earlier on  
+- communicate with other groups for efficiency  
 
 ########################
 
 ##Interesting Things In Data
--one mouse can only be used for so many measurements
+- one mouse can only be used for so many measurements  
 
 
 
 ########################
 
 ##Conclusion
--how real world data is not always tidy
--reward to create the Shiny app
+- how real world data is not always tidy  
+- reward to create the Shiny app  
 
 
