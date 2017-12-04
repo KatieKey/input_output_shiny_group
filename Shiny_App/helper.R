@@ -59,7 +59,9 @@ plasma_function <- function(plasma_df){
 }
 
 
-##### tissue_laser_function cleans raw tissue laser data in Shiny app
+##### Clean the tissue laser data into a tidy format
+
+# 
 tissue_laser_function <- function(tissue_laser_df) {
   tissue_laser_clean <- tissue_laser_df %>%
     rename(`Parent [ng/ml]` = Parent) %>%
