@@ -21,9 +21,10 @@ runtime: shiny
 
 ## Our group was tasked with:
 
-- inputting the Excel files received from the research group
-- outputting the data in "tidy" formats
-- developing the Shiny app
+- loading original Excel files from the research group into R
+- cleaning the data into "tidy" formats
+- developing an R Shiny App that displays summaries of the clean data and
+  displays graphs created by the other groups
 
 ########################
 
