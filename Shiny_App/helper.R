@@ -42,6 +42,8 @@ efficacy_function <- function(efficacy_df){
 
 
 #### plasma_function cleans raw plasma data in Shiny app
+#Function Title: Cleaning Plasma Dataframe
+#This function 
 plasma_function <- function(plasma_df){
   plasma_clean <- plasma_df %>%
     select(MouseID, 
