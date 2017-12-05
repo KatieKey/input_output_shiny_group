@@ -15,8 +15,12 @@ library(visdat)
 library(ggplot2)
 library(ggthemes)
 library(rpart)
+library(ggbeeswarm)
+library(plotly)
+library(colourpicker)
 
 source("helper.R")
+source("Group2Functions.R")
 source("Group3Functions.R")
 
 # Define UI for application 
@@ -98,24 +102,26 @@ ui <- fluidPage(
                   tabPanel("Independent", 
                            tabsetPanel(type = "tabs",
                                        tabPanel("Beeswarm",
-                                checkboxGroupInput("CheckBeeVarInVitro", 
+                                                helpText("Please Select at Least One Variable and One Drug 
+                                                         (Output Is Below)"),
+                                checkboxGroupInput("CheckBeeVarInVitro",
                                 label = h3("Check Variables To Explore"), 
-                                choices = list("Caseum_binding" = efficacy_summary_file$Caseum_binding, 
-                                               "cLogP" = efficacy_summary_file$cLogP,
-                                               "huPPB" = efficacy_summary_file$huPPB,
-                                               "muPPB" = efficacy_summary_file$muPPB,
-                                               "MIC_Erdman" = efficacy_summary_file$MIC_Erdman,
-                                               "MICserumErd" = efficacy_summary_file$MICserumErd,
-                                               "MIC_Rv" = efficacy_summary_file$MIC_Rv,
-                                               "MacUptake" = efficacy_summary_file$MacUptake)
+                                choices = list("Caseum_binding" = Caseum_binding, 
+                                               "cLogP" = cLogP,
+                                               "huPPB" = huPPB,
+                                               "muPPB" = muPPB,
+                                               "MIC_Erdman" = MIC_Erdman,
+                                               "MICserumErd" = MICserumErd,
+                                               "MIC_Rv" = MIC_Rv,
+                                               "MacUptake" = MacUptake)
                                   ),
                                 checkboxGroupInput("CheckBeeDrugInVitro", 
                                  label = h3("Check Drugs To Explore"), 
-                                 choices = list("DRUG1" = 1, "DRUG2" = 2, 
-                                                "DRUG3" = 3,
-                                 "DRUG4" = 4, "DRUG5" = 5, "DRUG6" = 6,
-                                 "DRUG7" = 7, "DRUG8" = 8, "DRUG9" = 9,
-                                 "DRUG10" = 10, "DRUG11" = 11)
+                                 choices = list("DRUG1" = DRUG1, "DRUG2" = DRUG2, 
+                                                "DRUG3" = DRUG3,
+                                 "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
+                                 "DRUG7" = DRUG7, "DRUG8" = DRUG8, "DRUG9" = DRUG9,
+                                 "DRUG10" = DRUG10, "DRUG11" = DRUG11)
                                  ),
                                  plotOutput("beeswarm_invitro_plot")
                                  ),
@@ -385,12 +391,53 @@ server <- function(input, output) {
     #CheckBeeVarInVitro
     
     output$beeswarm_invitro_plot <- renderPlot({
-    
+        in_vitro <- efficacy_summary_file %>%
+          rename(Drugs = "drug") %>% 
+          unite(dosage_interval, dosage:dose_int, sep = "")
+        
+        in_vitro_SM <- in_vitro %>% 
+          gather(key = variable, value = value, -Drugs, -dosage_interval) %>% 
+          mutate(variable_filtered = variable) %>% 
+          mutate(variable = factor(variable, levels = c("Caseum_binding", "cLogP", "huPPB", "muPPB", "MIC_Erdman",
+                                                        "MICserumErd", "MIC_Rv", "MacUptake"),
+                                   labels = c("Caseum \nBinding", "cLogP", 
+                                              "Human \nPlasma \nBinding", "Mouse \nPlasma \nBinding", 
+                                              "MIC Erdman \nStrain", "MIC Erdman \nStrain \nwith Serum", "MIC Rv Strain",
+                                              "Macrophage \nUptake (Ratio)"))) %>% 
+          mutate(dosage_interval = factor(dosage_interval, levels = c("50BID", "100QD"))) %>% 
+          filter(Drugs %in% c(input$CheckBeeDrugInVitro))
+        
+        if(is.null(input$CheckBeeVarInVitro)) {
+          return(NULL)
+        }
+        
+        if(is.null(input$CheckBeeDrugInVitro)) {
+          return(NULL)
+        }
+        
+        if(!is.null(input$CheckBeeVarInVitro)) {
+          in_vitro_SM <- in_vitro_SM %>% 
+            dplyr::filter(variable_filtered %in% input$CheckBeeVarInVitro)
+        }
+        
+        if(!is.null(input$CheckBeeDrugInVitro)) {
+          in_vitro_SM <- in_vitro_SM %>%
+            dplyr::filter(Drugs %in% input$CheckBeeDrugInVitro)
+        }
 
-    return(efficacy_summary_file)
-    
-    })
+        in_vitro_SMplot <- in_vitro_SM %>% 
+          ggplot(aes(x = dosage_interval, y = value, color = Drugs)) +
+          geom_beeswarm(alpha = 0.5, size = 1.5) +
+          labs(x = 'Dosage-Interval', y = 'Value') +
+          ggtitle('In-Vitro Distribution of TB Drugs') +
+          theme_few() +
+          facet_wrap(~ input$CheckBeeVarInVitro, ncol = 4, scale="free")
+
+        return(in_vitro_SMplot)
+        
+})
    
+
     
 ######INDEPENDENT DEPENDENT GROUP FUNCTIONS
     output$regression_tree <- renderPlot({
@@ -398,9 +445,8 @@ server <- function(input, output) {
       if(is.null(efficacy_summary_file)){
         return(NULL)
       }
-      
-      dep_var <- input$regression
-      regression_tree_function(dep_var, efficacy_summary_file)
+
+      regression_tree_function(dep_var = input$regression, efficacy_summary_file)
  
     }) 
     

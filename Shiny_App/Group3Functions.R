@@ -15,6 +15,7 @@ regression_tree_function <- function(dep_var, efficacy_summary_file) {
                     Caseum_binding + MacUptake,
                   data = function_data, 
                   control = rpart.control(cp = -1))
+    return(tree)
   }
   
   if (dep_var == "ESP") {
@@ -28,6 +29,7 @@ regression_tree_function <- function(dep_var, efficacy_summary_file) {
                     Caseum_binding + MacUptake,
                   data = function_data, 
                   control = rpart.control(cp = -1))
+    return(tree)
   }
 }
 
