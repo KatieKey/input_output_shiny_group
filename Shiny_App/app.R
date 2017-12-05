@@ -76,7 +76,7 @@ ui <- fluidPage(
                                                 DT::dataTableOutput("clean_tissue_std_pk_table")
                                                 ),
                                        tabPanel("Efficacy Summary",
-                                                helpText("Used for Beeswarm Data in 'Independent' Tab"),
+                                                helpText("Used for In Vitro & In Vivo Plots in 'Independent' Tab"),
                                                 DT::dataTableOutput("clean_efficacy_summary_table")
                                                )
                                            )
@@ -104,7 +104,7 @@ ui <- fluidPage(
                   
                   tabPanel("Independent", 
                            tabsetPanel(type = "tabs",
-                                       tabPanel("Beeswarm In Vitro",
+                                       tabPanel("In Vitro", width = 2,
                                                 helpText("Select and Deselect to Explore Efficacy Summary Data"),
                                 checkboxGroupInput("CheckBeeVarInVitro",
                                 label = h3("Check Variables To Explore"), 
@@ -140,7 +140,7 @@ ui <- fluidPage(
                                  ),
                                  plotlyOutput("beeswarm_invitro_plot", width = "auto", height = "auto")
                                  ),
-                                       tabPanel("Beeswarm In Vivo",
+                                       tabPanel("In Vivo", width = 3,
                                                 helpText("Select and Deselect to Explore Efficacy Summary Data"),
                                                 checkboxGroupInput("CheckBeeVarInVivo",
                                                                    label = h3("Check Variables To Explore"), 
@@ -151,15 +151,14 @@ ui <- fluidPage(
                                                                                   "SLU" = SLU,
                                                                                   "SLE" = SLE,
                                                                                   "PLA" = PLA),
-                                                                   selected = c("Caseum_binding" = Caseum_binding, 
-                                                                                "cLogP" = cLogP,
-                                                                                "huPPB" = huPPB,
-                                                                                "muPPB" = muPPB,
-                                                                                "MIC_Erdman" = MIC_Erdman,
-                                                                                "MICserumErd" = MICserumErd,
-                                                                                "MIC_Rv" = MIC_Rv,
-                                                                                "MacUptake" = MacUptake)
-                                                ),
+                                                                   selected = c("RIM" = RIM,
+                                                                                "OCS" = OCS, 
+                                                                                 "ICS" = ICS,
+                                                                                 "ULU" = ULU,
+                                                                                 "SLU" = SLU,
+                                                                                 "SLE" = SLE,
+                                                                                 "PLA" = PLA)
+                                                                                ),
                                                 checkboxGroupInput("CheckBeeDrugInVivo", 
                                                                    label = h3("Check Drugs To Explore"), 
                                                                    choices = list("DRUG1" = DRUG1, "DRUG2" = DRUG2, 
@@ -173,7 +172,7 @@ ui <- fluidPage(
                                                                                 "DRUG7" = DRUG7, "DRUG8" = DRUG8, "DRUG9" = DRUG9,
                                                                                 "DRUG10" = DRUG10, "DRUG11" = DRUG11)
                                                 ),
-                                                plotlyOutput("beeswarm_invitro_plot", width = "auto", height = "auto")
+                                                plotlyOutput("beeswarm_invivo_plot", width = "auto", height = "auto")
                                                 ),
                                        tabPanel("Plot2"),
                                        tabPanel("Plot3")
@@ -187,6 +186,8 @@ ui <- fluidPage(
                                                              choices = list("Lung Efficacy" = ELU,
                                                                          "Spleen Efficacy" = ESP)
                                                              ),
+                                                numericInput("min_split", label = h3("Minimum Split for Regression Tree"), value = 1, min = 0),
+                                                numericInput("min_bucket", label = h3("Minimum Buckets for Regression Tree"), value = 1, min = 0),
                                                 plotOutput("regression_tree")
                                                 ),
                                        tabPanel("Drews"),
@@ -495,6 +496,51 @@ server <- function(input, output) {
         return(in_vitro_plotly)
         
 })
+    
+### beeswarm IN VIVO plot
+    
+    output$beeswarm_invivo_plot <- renderPlotly({
+      in_vitro <- efficacy_summary_file %>%
+        rename(Drugs = "drug") %>% 
+        unite(dosage_interval, dosage:dose_int, sep = "")
+      
+      in_vivo_SM <- in_vitro %>% 
+        gather(key = variable, value = value, -Drugs, -dosage_interval) %>% 
+        mutate(variable_filtered = variable) %>% 
+        mutate(variable = factor(variable, levels = c("RIM", "OCS","ICS","ULU","SLU","SLE","PLA"),
+                                 labels = c("Rim (of lesion)","Outer Caseum","Inner Caseum","Uninvolved Lung",
+                                            "Standard Lung", "Standard Lesion", "Plasma"))) %>% 
+        mutate(dosage_interval = factor(dosage_interval, levels = c("50BID", "100QD"))) %>% 
+        filter(Drugs %in% c(input$CheckBeeDrugInVivo))
+      
+      if(is.null(input$CheckBeeVarInVivo)) {
+        return(NULL)
+      }
+      
+      
+      if(!is.null(input$CheckBeeVarInVivo)) {
+        in_vivo_SM <- in_vivo_SM %>% 
+          dplyr::filter(variable_filtered %in% input$CheckBeeVarInVivo)
+      }
+      
+      if(!is.null(input$CheckBeeDrugInVivo)) {
+        in_vivo_SM <- in_vivo_SM %>%
+          dplyr::filter(Drugs %in% input$CheckBeeDrugInVivo)
+      }
+      
+      in_vivo_SMplot <- in_vivo_SM %>% 
+        ggplot(aes(x = dosage_interval, y = value, color = Drugs)) +
+        geom_beeswarm(alpha = 0.5, size = 1.5, groupOnX = FALSE) +
+        labs(x = 'Dosage-Interval', y = 'Value') +
+        ggtitle('In-Vivo Distribution of TB Drugs') +
+        theme_few() +
+        facet_wrap(~ input$CheckBeeVarInVivo, ncol = 4, scale="free")
+      
+      in_vivo_plotly <- ggplotly(in_vivo_SMplot)
+      
+      return(in_vivo_plotly)
+      
+    })
    
 
     
@@ -502,15 +548,27 @@ server <- function(input, output) {
     ##regression tree
     
     output$regression_tree <- renderPlot({
+      
+      efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
+                                        "master/CSV_Files/efficacy_summary.csv")
+      efficacy_summary_file <- read_csv(efficacy_summary_file_1)
 
       if(is.null(efficacy_summary_file)){
         return(NULL)
       }
       
-      dep_var <-  input$regression
-      
-      regression_tree_function(dep_var, efficacy_summary_file)
-      
+        function_data <- efficacy_summary_file %>%
+          filter(!is.na(input$regression))
+        
+        tree <- rpart(input$regression ~  drug + dosage + level + 
+                        PLA + ULU + RIM + OCS + ICS + SLU + SLE + 
+                        cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
+                        Caseum_binding + MacUptake,
+                      data = function_data, 
+                      control = rpart.control(cp = -1, minsplit = input$min_split, 
+                                              minbucket = input$min_bucket))
+        return(tree)
+
         }) 
     
 
