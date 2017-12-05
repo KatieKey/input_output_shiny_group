@@ -2,7 +2,10 @@
 #FROM: https://github.com/dfat5/erhs_535_group3
 
 ##regression tree function
-regression_tree_function <- function(dep_var, efficacy_summary_file) {
+ELU = "ELU"
+ESP = "ESP"
+
+regression_tree_function <- function(dep_var, min_split, min_bucket, efficacy_summary_file) {
   
   if (dep_var == "ELU") {
     
@@ -14,7 +17,8 @@ regression_tree_function <- function(dep_var, efficacy_summary_file) {
                     cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
                     Caseum_binding + MacUptake,
                   data = function_data, 
-                  control = rpart.control(cp = -1))
+                  control = rpart.control(cp = -1, minsplit = min_split, 
+                                          minbucket = min_bucket))
     return(tree)
   }
   
@@ -28,7 +32,8 @@ regression_tree_function <- function(dep_var, efficacy_summary_file) {
                     cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
                     Caseum_binding + MacUptake,
                   data = function_data, 
-                  control = rpart.control(cp = -1))
+                  control = rpart.control(cp = -1, minsplit = min_split, 
+                                          minbucket = min_bucket))
     return(tree)
   }
 }

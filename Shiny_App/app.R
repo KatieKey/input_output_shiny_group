@@ -95,13 +95,16 @@ ui <- fluidPage(
                                                 ),
                                        tabPanel("Tissue Std PK",
                                                 plotOutput("summary_tissue_std_pk_plot")
-                                                )
+                                                ),
+                                       tabPanel("Efficacy Summary",
+                                                plotOutput("summary_efficacy_summary_plot")
+                                        )
                                         )
                                         ),
                   
                   tabPanel("Independent", 
                            tabsetPanel(type = "tabs",
-                                       tabPanel("Beeswarm",
+                                       tabPanel("Beeswarm In Vitro",
                                                 helpText("Select and Deselect to Explore Efficacy Summary Data"),
                                 checkboxGroupInput("CheckBeeVarInVitro",
                                 label = h3("Check Variables To Explore"), 
@@ -137,6 +140,41 @@ ui <- fluidPage(
                                  ),
                                  plotlyOutput("beeswarm_invitro_plot", width = "auto", height = "auto")
                                  ),
+                                       tabPanel("Beeswarm In Vivo",
+                                                helpText("Select and Deselect to Explore Efficacy Summary Data"),
+                                                checkboxGroupInput("CheckBeeVarInVivo",
+                                                                   label = h3("Check Variables To Explore"), 
+                                                                   choices = list("RIM" = RIM, 
+                                                                                  "OCS" = OCS,
+                                                                                  "ICS" = ICS,
+                                                                                  "ULU" = ULU,
+                                                                                  "SLU" = SLU,
+                                                                                  "SLE" = SLE,
+                                                                                  "PLA" = PLA),
+                                                                   selected = c("Caseum_binding" = Caseum_binding, 
+                                                                                "cLogP" = cLogP,
+                                                                                "huPPB" = huPPB,
+                                                                                "muPPB" = muPPB,
+                                                                                "MIC_Erdman" = MIC_Erdman,
+                                                                                "MICserumErd" = MICserumErd,
+                                                                                "MIC_Rv" = MIC_Rv,
+                                                                                "MacUptake" = MacUptake)
+                                                ),
+                                                checkboxGroupInput("CheckBeeDrugInVivo", 
+                                                                   label = h3("Check Drugs To Explore"), 
+                                                                   choices = list("DRUG1" = DRUG1, "DRUG2" = DRUG2, 
+                                                                                  "DRUG3" = DRUG3,
+                                                                                  "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
+                                                                                  "DRUG7" = DRUG7, "DRUG8" = DRUG8, "DRUG9" = DRUG9,
+                                                                                  "DRUG10" = DRUG10, "DRUG11" = DRUG11),
+                                                                   selected = c("DRUG1" = DRUG1, "DRUG2" = DRUG2, 
+                                                                                "DRUG3" = DRUG3,
+                                                                                "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
+                                                                                "DRUG7" = DRUG7, "DRUG8" = DRUG8, "DRUG9" = DRUG9,
+                                                                                "DRUG10" = DRUG10, "DRUG11" = DRUG11)
+                                                ),
+                                                plotlyOutput("beeswarm_invitro_plot", width = "auto", height = "auto")
+                                                ),
                                        tabPanel("Plot2"),
                                        tabPanel("Plot3")
                                 )
@@ -146,8 +184,8 @@ ui <- fluidPage(
                            tabsetPanel(type = "tabs",
                                        tabPanel("RegressionTree",
                                                 radioButtons("regression", label = "Pick a Variable",
-                                                             choices = list("Lung Efficacy" = efficacy_summary_file$ELU,
-                                                                         "Spleen Efficacy" = efficacy_summary_file$ESP)
+                                                             choices = list("Lung Efficacy" = ELU,
+                                                                         "Spleen Efficacy" = ESP)
                                                              ),
                                                 plotOutput("regression_tree")
                                                 ),
@@ -396,11 +434,21 @@ server <- function(input, output) {
     tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
     vis_dat(tissue_std_pk_clean)
     }) 
+    
+# Render plot with summary of efficacy summary data
+    output$summary_efficacy_summary_plot <- renderPlot({
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_summary_file)){
+        return(NULL)
+      }
+      
+      vis_dat(efficacy_summary_file)
+    }) 
   
     
 #####INDEPENDENT GROUPS FUNCTIONS
-    #CheckBeeDrugInVitro
-    #CheckBeeVarInVitro
+    #Beeswarm In Vitro
     
     output$beeswarm_invitro_plot <- renderPlotly({
         in_vitro <- efficacy_summary_file %>%
@@ -451,17 +499,22 @@ server <- function(input, output) {
 
     
 ######INDEPENDENT DEPENDENT GROUP FUNCTIONS
+    ##regression tree
+    
     output$regression_tree <- renderPlot({
 
       if(is.null(efficacy_summary_file)){
         return(NULL)
       }
-
-      regression_tree_function(dep_var = input$regression, efficacy_summary_file)
- 
-    }) 
+      
+      dep_var <-  input$regression
+      
+      regression_tree_function(dep_var, efficacy_summary_file)
+      
+        }) 
     
-}
+
+    }
 
 
 # Run the application 

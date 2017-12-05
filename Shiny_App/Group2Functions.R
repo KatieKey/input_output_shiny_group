@@ -10,7 +10,7 @@ muPPB <- "muPPB"
 MIC_Erdman <- "MIC_Erdman"
 MICserumErd <- "MICserumErd"
 MIC_Rv <- "MIC_Rv"
-MacUptake <- "MacUptake"
+MacUptake <- "MacUptake" 
 
 DRUG1 <- "DRUG1"
 DRUG2 <- "DRUG2"
@@ -23,5 +23,14 @@ DRUG8 <- "DRUG8"
 DRUG9 <- "DRUG9"
 DRUG10 <- "DRUG10"
 DRUG11 <- "DRUG11"
+
+RIM <- "RIM"
+OCS <- "OCS"
+ICS <- "ICS"
+ULU <- "ULU"
+SLU <- "SLU"
+SLE <- "SLE"
+PLA <- "PLA"
+
 
 
