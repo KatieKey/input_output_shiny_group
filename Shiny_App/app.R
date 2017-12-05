@@ -102,8 +102,7 @@ ui <- fluidPage(
                   tabPanel("Independent", 
                            tabsetPanel(type = "tabs",
                                        tabPanel("Beeswarm",
-                                                helpText("Please Select at Least One Variable and One Drug 
-                                                         (Output Is Below)"),
+                                                helpText("Select and Deselect to Explore Efficacy Summary Data"),
                                 checkboxGroupInput("CheckBeeVarInVitro",
                                 label = h3("Check Variables To Explore"), 
                                 choices = list("Caseum_binding" = Caseum_binding, 
@@ -113,7 +112,15 @@ ui <- fluidPage(
                                                "MIC_Erdman" = MIC_Erdman,
                                                "MICserumErd" = MICserumErd,
                                                "MIC_Rv" = MIC_Rv,
-                                               "MacUptake" = MacUptake)
+                                               "MacUptake" = MacUptake),
+                                selected = c("Caseum_binding" = Caseum_binding, 
+                                              "cLogP" = cLogP,
+                                              "huPPB" = huPPB,
+                                              "muPPB" = muPPB,
+                                              "MIC_Erdman" = MIC_Erdman,
+                                              "MICserumErd" = MICserumErd,
+                                              "MIC_Rv" = MIC_Rv,
+                                              "MacUptake" = MacUptake)
                                   ),
                                 checkboxGroupInput("CheckBeeDrugInVitro", 
                                  label = h3("Check Drugs To Explore"), 
@@ -121,9 +128,14 @@ ui <- fluidPage(
                                                 "DRUG3" = DRUG3,
                                  "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
                                  "DRUG7" = DRUG7, "DRUG8" = DRUG8, "DRUG9" = DRUG9,
-                                 "DRUG10" = DRUG10, "DRUG11" = DRUG11)
+                                 "DRUG10" = DRUG10, "DRUG11" = DRUG11),
+                                 selected = c("DRUG1" = DRUG1, "DRUG2" = DRUG2, 
+                                             "DRUG3" = DRUG3,
+                                             "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
+                                             "DRUG7" = DRUG7, "DRUG8" = DRUG8, "DRUG9" = DRUG9,
+                                             "DRUG10" = DRUG10, "DRUG11" = DRUG11)
                                  ),
-                                 plotOutput("beeswarm_invitro_plot")
+                                 plotlyOutput("beeswarm_invitro_plot", width = "auto", height = "auto")
                                  ),
                                        tabPanel("Plot2"),
                                        tabPanel("Plot3")
@@ -390,7 +402,7 @@ server <- function(input, output) {
     #CheckBeeDrugInVitro
     #CheckBeeVarInVitro
     
-    output$beeswarm_invitro_plot <- renderPlot({
+    output$beeswarm_invitro_plot <- renderPlotly({
         in_vitro <- efficacy_summary_file %>%
           rename(Drugs = "drug") %>% 
           unite(dosage_interval, dosage:dose_int, sep = "")
@@ -410,10 +422,7 @@ server <- function(input, output) {
         if(is.null(input$CheckBeeVarInVitro)) {
           return(NULL)
         }
-        
-        if(is.null(input$CheckBeeDrugInVitro)) {
-          return(NULL)
-        }
+      
         
         if(!is.null(input$CheckBeeVarInVitro)) {
           in_vitro_SM <- in_vitro_SM %>% 
@@ -427,13 +436,15 @@ server <- function(input, output) {
 
         in_vitro_SMplot <- in_vitro_SM %>% 
           ggplot(aes(x = dosage_interval, y = value, color = Drugs)) +
-          geom_beeswarm(alpha = 0.5, size = 1.5) +
+          geom_beeswarm(alpha = 0.5, size = 1.5, groupOnX = FALSE) +
           labs(x = 'Dosage-Interval', y = 'Value') +
           ggtitle('In-Vitro Distribution of TB Drugs') +
           theme_few() +
           facet_wrap(~ input$CheckBeeVarInVitro, ncol = 4, scale="free")
-
-        return(in_vitro_SMplot)
+      
+        in_vitro_plotly <- ggplotly(in_vitro_SMplot)
+        
+        return(in_vitro_plotly)
         
 })
    
