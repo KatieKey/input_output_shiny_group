@@ -12,6 +12,7 @@ tissue_laser_function <- function(tissue_laser_df) {
            Dosing, Timepoint, Timepoint_Hours, Compartment, `Parent [ng/ml]`)
   
   tissue_laser_clean <- tissue_laser_clean %>%
+    filter(Dosing == "Steady_State") %>% 
     spread(key = Compartment, value = `Parent [ng/ml]`) %>%
     rename(ULU = `uninvolved lung`, RIM = rim,
            OCS = `outer caseum`, ICS = `inner caseum`) %>%
