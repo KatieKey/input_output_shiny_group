@@ -3,7 +3,7 @@ library(shiny)
 
 #Alexia's Functions: https://github.com/leskia29/group_2
 
-Caseum_binding <- ("Caseum_binding")
+Caseum_binding <- "Caseum_binding"
 cLogP <- "cLogP"
 huPPB <- "huPPB"
 muPPB <- "muPPB"
