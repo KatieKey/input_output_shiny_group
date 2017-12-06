@@ -31,3 +31,30 @@ tissue_laser_summary <- function(tissue_laser_clean){
            level = Timepoint)
   return(tissue_laser_summarized)
 }
+
+##### tissue_std_pk_function cleans raw tissue std pk data in Shiny app
+
+#Function Title: Clean STD PK Dataframe
+#The argument for this function contains information on pharmacokinetic properties of the 
+#drugs tested on a mouse-by-mouse level. A mouse id was created as a new column to the
+#dataset. Additionally, only the necessary columns were included in the dataframe. The spread
+#function was used to convert the Comparment column into columns for each compartment, 
+#containing the respective Parent values. These new columns were then renamed to match the 
+#SLE and SLU variable names in the tidy data templates and recoded as numerical values.
+
+tissue_std_pk_function <- function(tissue_std_pk_df){
+  n <- nrow(tissue_std_pk_df)
+  mice_ids <- rep(c(1:(n/2)), each = 2)
+  
+  tissue_std_pk_clean <- tissue_std_pk_df %>% 
+    mutate(mouse_number = mice_ids) %>%
+    select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
+    rename(drug = Compound,
+           `Parent [ng/ml]` = Parent) %>% 
+    spread(key = Compartment, value = `Parent [ng/ml]`) %>% 
+    rename(SLU = Lung, 
+           SLE = Lesion) %>% 
+    mutate(SLU = as.numeric(SLU),
+           SLE = as.numeric(SLE))
+  return(tissue_std_pk_clean)
+} 
