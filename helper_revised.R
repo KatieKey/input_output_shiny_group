@@ -56,3 +56,14 @@ tissue_std_pk_function <- function(tissue_std_pk_df){
     filter(Dosing == "Steady_State")
   return(tissue_std_pk_clean)
 } 
+
+tissue_std_pk_summarize <- function(tissue_std_pk_clean){
+  tissue_std_pk_summarized <- tissue_std_pk_clean %>% 
+    group_by(drug, Drug_Dose, Dose_Frequency, Timepoint) %>% 
+    summarize_at(c("SLE", "SLU"), mean, na.rm = TRUE) %>% 
+    ungroup() %>% 
+    rename(dosage = Drug_Dose, 
+           dose_int = Dose_Frequency,
+           level = Timepoint)
+  return(tissue_std_pk_summarized)
+}
