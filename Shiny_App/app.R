@@ -216,8 +216,8 @@ ui <- fluidPage(
 
 #Define server logic 
 server <- function(input, output) {
-  
-###### CODE FOR RENDERING RAW DATA
+
+######## CODE FOR REACTIVES
   
   # Reactive with raw, clean, and summarized efficacy data
   efficacy_df <- reactive({
@@ -363,6 +363,8 @@ server <- function(input, output) {
     return(efficacy_summary_file)
   })
   
+###### CODE FOR RENDERING RAW DATA
+  
 # Render data table with raw efficacy data
   output$raw_efficacy_table <- DT::renderDataTable({
     efficacy_df()
@@ -435,64 +437,28 @@ server <- function(input, output) {
   
 # Render plot with summary of clean tissue laser data
     output$summary_tissue_laser_plot <- renderPlot({
-    tissue_laser_file <- input$tissue_laser
-    
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(tissue_laser_file)){
-      return(NULL)
-    }
-    
-    ext <- tools::file_ext(tissue_laser_file$name)
-    file.rename(tissue_laser_file$datapath, 
-                paste(tissue_laser_file$datapath, ext, sep = "."))
-    tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
-    tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
-    vis_dat(tissue_laser_clean)
+      vis_dat(tissue_laser_clean())
     }) 
   
 # Render plot with summary of clean tissue std pk data
     output$summary_tissue_std_pk_plot <- renderPlot({
-    tissue_std_pk_file <- input$tissue_std_pk
-    
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(tissue_std_pk_file)){
-      return(NULL)
-    }
-    
-    ext <- tools::file_ext(tissue_std_pk_file$name)
-    file.rename(tissue_std_pk_file$datapath, 
-                paste(tissue_std_pk_file$datapath, ext, sep = "."))
-    tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
-    tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
-    vis_dat(tissue_std_pk_clean)
+      vis_dat(tissue_std_pk_clean())
     }) 
     
 # Render plot with summary of clean in vitro data
     output$summary_invitro_plot <- renderPlot({
-      invitro_file <- input$invitro
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(invitro_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(invitro_file$name)
-      file.rename(invitro_file$datapath, 
-                  paste(invitro_file$datapath, ext, sep = "."))
-      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
-      invitro_clean <- in_vitro_function(invitro_df)
-      vis_dat(invitro_clean)
+      vis_dat(in_vitro_clean())
     }) 
     
 # Render plot with summary of efficacy summary data
     output$summary_efficacy_summary_plot <- renderPlot({
       
       # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(efficacy_summary_file)){
+      if(is.null(efficacy_summary_file())){
         return(NULL)
       }
       
-      vis_dat(efficacy_summary_file)
+      vis_dat(efficacy_summary_file())
     }) 
   
     
@@ -500,7 +466,11 @@ server <- function(input, output) {
     #Beeswarm In Vitro
     
     output$beeswarm_invitro_plot <- renderPlotly({
-        in_vitro <- efficacy_summary_file %>%
+      if(is.null(efficacy_summary_file())){
+        return(NULL)
+      }
+      
+        in_vitro <- efficacy_summary_file() %>%
           rename(Drugs = "drug") %>% 
           unite(dosage_interval, dosage:dose_int, sep = "")
         
@@ -532,7 +502,7 @@ server <- function(input, output) {
         }
 
         in_vitro_SMplot <- in_vitro_SM %>% 
-          ggplot(aes(x = dosage_interval, y = value, color = Drugs)) +
+          ggplot(aes(x = dosage_interval, y = as.numeric(as.character(value)), color = Drugs)) +
           geom_beeswarm(alpha = 0.5, size = 1.5, groupOnX = FALSE) +
           labs(x = 'Dosage-Interval', y = 'Value') +
           ggtitle('In-Vitro Distribution of TB Drugs') +
@@ -548,7 +518,11 @@ server <- function(input, output) {
 ### beeswarm IN VIVO plot
     
     output$beeswarm_invivo_plot <- renderPlotly({
-      in_vitro <- efficacy_summary_file %>%
+      if(is.null(efficacy_summary_file())){
+        return(NULL)
+      }
+      
+      in_vitro <- efficacy_summary_file() %>%
         rename(Drugs = "drug") %>% 
         unite(dosage_interval, dosage:dose_int, sep = "")
       
@@ -577,7 +551,7 @@ server <- function(input, output) {
       }
       
       in_vivo_SMplot <- in_vivo_SM %>% 
-        ggplot(aes(x = dosage_interval, y = value, color = Drugs)) +
+        ggplot(aes(x = dosage_interval, y = as.numeric(as.character(value)), color = Drugs)) +
         geom_beeswarm(alpha = 0.5, size = 1.5, groupOnX = FALSE) +
         labs(x = 'Dosage-Interval', y = 'Value') +
         ggtitle('In-Vivo Distribution of TB Drugs') +
@@ -596,26 +570,25 @@ server <- function(input, output) {
     ##regression tree
     
     output$regression_tree <- renderPlot({
-      
-      efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
-                                        "master/CSV_Files/efficacy_summary.csv")
-      efficacy_summary_file <- read_csv(efficacy_summary_file_1)
 
-      if(is.null(efficacy_summary_file)){
+      if(is.null(efficacy_summary_file())){
         return(NULL)
       }
       
-        function_data <- efficacy_summary_file %>%
-          filter(!is.na(input$regression))
+        function_data <- efficacy_summary_file() 
+        function_data[ , "dependent"] <- function_data[ , input$regression]
+        function_data <- function_data %>%
+          filter(!is.na(dependent))
         
-        tree <- rpart(input$regression ~  drug + dosage + level + 
+        tree <- rpart(dependent ~  drug + dosage + level + 
                         PLA + ULU + RIM + OCS + ICS + SLU + SLE + 
                         cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
                         Caseum_binding + MacUptake,
                       data = function_data, 
                       control = rpart.control(cp = -1, minsplit = input$min_split, 
                                               minbucket = input$min_bucket))
-        return(tree)
+        plot(tree)
+        text(tree, use.n = TRUE)
 
         }) 
     
