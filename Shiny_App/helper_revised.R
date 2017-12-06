@@ -76,6 +76,15 @@ plasma_function <- function(plasma_df){
   return(plasma_clean)
 }
 
+plasma_summarize <- function(plasma_clean){
+  plasma_summarized <- plasma_clean %>% 
+    filter(Dosing == "Steady_State") %>% 
+    group_by(drug, dosage, dose_int, Timepoint) %>% 
+    summarize(PLA = mean(plasma_concentration, na.rm = TRUE)) %>% 
+    rename(level = Timepoint)
+  return(plasma_summarized)
+}
+
 ##### Clean the tissue laser data into a tidy format
 
 # 
