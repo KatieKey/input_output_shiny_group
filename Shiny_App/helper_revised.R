@@ -69,7 +69,9 @@ plasma_function <- function(plasma_df){
            Plasma_Parent) %>%
     rename(drug = Compound, 
            mouse_number = MouseID, 
-           plasma_concentration = Plasma_Parent)  %>%
+           plasma_concentration = Plasma_Parent,
+           dosage = Drug_Dose,
+           dose_int = Dose_Frequency)  %>%
     mutate(Group = as.character(Group))
   return(plasma_clean)
 }
