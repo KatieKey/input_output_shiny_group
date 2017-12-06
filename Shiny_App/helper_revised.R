@@ -33,19 +33,21 @@ efficacy_function <- function(efficacy_df){
   return(efficacy_clean)
 }
 
-efficacy_summary <- function(efficacy_clean){
+efficacy_summary_function <- function(efficacy_clean){
   untreated <- efficacy_clean %>% 
-    filter(drug == "Untr") %>% 
-    summarize_at(c("lung_efficacy_log", "spleen_efficacy_log"), mean)
-  
-  efficacy_clean_summarized <- efficacy_clean %>% 
+    dplyr::filter(drug == "Untr") %>%
+    summarize(lung_efficacy_log = mean(lung_efficacy_log, na.rm = TRUE),
+              spleen_efficacy_log = mean(spleen_efficacy_log, na.rm = TRUE))
+
+  efficacy_clean_summarized <- efficacy_clean %>%
     group_by(drug, dosage, dose_interval) %>%
-    summarize_at(c("lung_efficacy_log", "spleen_efficacy_log"), mean, na.rm = TRUE) %>% 
-    filter(!(drug %in% c("Baseline", "Untr"))) %>% 
+    summarize_at(c("lung_efficacy_log", "spleen_efficacy_log"), mean, na.rm = TRUE) %>%
+    ungroup() %>%
+    filter(!(drug %in% c("Baseline", "Untr"))) %>%
     mutate(ELU = untreated$lung_efficacy_log - lung_efficacy_log,
            ESP = untreated$spleen_efficacy_log - spleen_efficacy_log,
-           dose_interval = as.character(dose_interval)) %>% 
-    select(drug, dosage, dose_interval, ELU, ESP) %>% 
+           dose_interval = as.character(dose_interval)) %>%
+    select(drug, dosage, dose_interval, ELU, ESP) %>%
     rename(dose_int = dose_interval)
   
   return(efficacy_clean_summarized)
@@ -84,7 +86,8 @@ plasma_summarize <- function(plasma_clean){
     group_by(drug, dosage, dose_int, Timepoint) %>% 
     summarize(PLA = mean(plasma_concentration, na.rm = TRUE)) %>% 
     rename(level = Timepoint) %>% 
-    mutate(level = ifelse(level == "CMax", "Cmax", level))
+    mutate(level = ifelse(level == "CMax", "Cmax", level)) %>% 
+    ungroup()
   
   return(plasma_summarized)
 }

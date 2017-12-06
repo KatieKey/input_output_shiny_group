@@ -19,7 +19,7 @@ library(ggbeeswarm)
 library(plotly)
 library(colourpicker)
 
-source("helper.R")
+source("helper_revised.R")
 source("Group2Functions.R")
 source("Group3Functions.R")
 
@@ -396,17 +396,80 @@ server <- function(input, output) {
       invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
       in_vitro_function(invitro_df)
     })
+    
+# Render data table with cleaned efficacy summary data
+    output$clean_efficacy_summary_table <- DT::renderDataTable({ 
+      # Grab the files you need
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+      efficacy_summary_file
+    })
   
 # Render data table with cleaned efficacy summary data
-    output$clean_efficacy_summary_table <- DT::renderDataTable({ input$efficacy_summary_file
+    #output$clean_efficacy_summary_table <- DT::renderDataTable({ input$efficacy_summary_file
     # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(efficacy_summary_file)){
-      return(NULL)
-    }
-      efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
-                                      "master/CSV_Files/efficacy_summary.csv")
-      efficacy_summary_file <- read_csv(efficacy_summary_file_1)
-    })
+    #if(is.null(efficacy_summary_file)){
+    #  return(NULL)
+    #}
+      #efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
+      #                                "master/CSV_Files/efficacy_summary.csv")
+      #efficacy_summary_file <- read_csv(efficacy_summary_file_1)
+    #})
   
 ######## CODE FOR RENDERING VIS DATA PLOTS OF RAW DATA
   
