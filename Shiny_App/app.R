@@ -22,6 +22,11 @@ library(rpart.plot)
 library(party)
 library(randomForest)
 library(tibble)
+library(glmnet)
+library(knitr)
+library(broom)
+library(ggfortify)
+library(stats)
 
 source("helper.R")
 source("Group2Functions.R")
@@ -201,13 +206,19 @@ ui <- fluidPage(
                                                 plotlyOutput("best_variables")),
                                        tabPanel("KateScatter"),
                                        tabPanel("KateCoefficient"),
-                                       tabPanel("Maggie")
+                                       tabPanel("LASSO Model",
+                                                radioButtons("variable_lasso", label = "Pick a Variable",
+                                                             choices = list("Lung Efficacy" = ELU,
+                                                                            "Spleen Efficacy" = ESP)),
+                                                radioButtons("dosage", label = "Pick a Dosage", 
+                                                             choices = list("50" = fifty,
+                                                                            "100" = hundred))),
+                                                verbatimTextOutput("lasso_model"))
                            )
                   )
                   )
                   )
       )
-    )
 
 
 
@@ -625,7 +636,8 @@ server <- function(input, output) {
         geom_point(aes(x = mse, y = reorder(variable, mse)))+
         theme_minimal()+
         labs(y = "Variable", 
-             x = "Importance")
+             x = "Importance") +
+        ggtitle("Lung Efficacy")
       return(ggplotly(graph))
     }
     
@@ -657,12 +669,72 @@ server <- function(input, output) {
         geom_point(aes(x = mse, y = reorder(variable, mse)))+
         theme_minimal()+
         labs(y = "Variable", 
-             x = "Importance")
+             x = "Importance") +
+        ggtitle("Spleen Efficacy")
       return(ggplotly(graph))
     }
     
     })
     
+##LASSO Model Output
+    
+    output$lasso_model <- renderPrint({
+    
+    if (input$dosage == "50"){
+    data <- na.omit(efficacy_summary_file) %>% 
+      select_if(is.numeric) %>%
+      filter(dosage == 50)
+    
+    response <- efficacy_summary_file %>% 
+      select(input$variable)
+    
+    predictors <- efficacy_summary_file %>%
+      select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
+               "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
+    
+    y <- as.numeric(unlist(response))
+    x <- as.matrix(predictors)
+    
+    fit =  glmnet(x, y)
+    #issues with this part of the code
+    
+    coeff <- coef(fit,s=0.1)
+    coeff <- as.data.frame(as.matrix(coeff))
+    
+    coeff <- coeff %>% 
+      filter(coeff > 0)
+    return(kable(coeff))
+    }
+      
+      if (input$dosage == "100"){
+        data <- na.omit(efficacy_summary_file) %>% 
+          select_if(is.numeric) %>%
+          filter(dosage == 100)
+        
+        response <- efficacy_summary_file %>% 
+          select(input$variable_lasso)
+        
+        predictors <- efficacy_summary_file %>%
+          select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
+                   "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
+        
+        y <- as.numeric(unlist(response))
+        x <- as.matrix(predictors)
+        
+        fit = glmnet(x, y)
+        ##issues with this part of the code
+        
+        coeff <- coef(fit,s=0.1)
+        coeff <- as.data.frame(as.matrix(coeff))
+        
+        coeff <- coeff %>% 
+          filter(coeff > 0)
+        return(kable(coeff))
+      }
+      
+    })
+    
+       
 }
 
 
