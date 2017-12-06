@@ -4,39 +4,53 @@ author: "Elle Holbrook, Katie Key, Brian Kim, Lizette Van Zyl"
 output: ioslides_presentation
 runtime: shiny
 ---
+ui, what server code looks like, what actual output looks like
+```{r}
+library(knitr)
+library(tidyverse)
+```
+
 ####################
 
 ##Outline for Presentation:
 
-1. Rationale for what we did
+1. Group Goals
 2. Idea development
-3. Datasets and the tidying process
-4. Shiny app development
-5. Challenges
-6. What we would do differently
-7. Interesting
-8. Possible Errors
-8. Conclusions
+3. Datasets
+4. Tidying process
+5. Shiny app development
+6. Challenges
+7. What we would do differently
+8. Interesting Observations
+9. Possible Errors
+10. Conclusions
 
 ########################
 
-## Our group was tasked with:
+## Group Goals
 
-- loading original Excel files from the research group into R
-- cleaning the data into "tidy" formats
-- developing an R Shiny App that displays summaries of the clean data and
-  displays graphs created by the other groups
-
-########################
-
-##Idea Development
-
-- Originally planned to combine all data into one or two large datasets
-- Getting information from Mike changed this to cleaning datasets all individually
+- Load original Excel files from the research group into R
+- Clean the data into "tidy" (or useable) formats
+- Develop an R Shiny App that displays summaries of the clean data and
+  displays interactive graphs created by the other groups
 
 ########################
 
-##Data sets:
+## Idea Development
+
+- Originally planned to combine all data into one large dataset
+- Learned that individual Excel files could not be combined because they used
+  different mice: switched to cleaning all datasets individually
+- Worked backwards from summary templates to clean original files
+- Shiny app layout developed as files were cleaned and Independent/Dependent
+  groups shared visuals they wanted included
+
+########################
+
+## Datasets
+
+Each group member cleaned one orginal data file to match the summarized version
+provided at the beginning of the project.
 
 - Efficacy (Katie)
 - Plasma (Brian)
@@ -45,23 +59,22 @@ runtime: shiny
 
 ########################
 
+## Tidying Process
+
+- fix original files that had missing rows
+- input dummy ids for columns that had no information (mice ids)
+- `select` down to only relevant columns
+- 
+
+########################
 ##Shiny App
-
-
 
 ```{r, echo=FALSE, warning=FALSE,message=FALSE, fig.height=4, fig.width=8}
 
-shinyAppDir(
-  system.file("examples/06_tabsets", package="shiny"),
-  options=list(
-    width="100%", height=700
-  )
-)
 
 ```
 
 ########################
-
 
 ## Challenges
 - differences between spreadsheets  
@@ -87,4 +100,5 @@ shinyAppDir(
 - how real world data is not always tidy  
 - reward to create the Shiny app  
 
+possible errors: too few columns, wrong column names, not using excel, different data class in a column, missing rows instead of NAs, inputting values in differing units (won't break code but will mess up analysis)
 
