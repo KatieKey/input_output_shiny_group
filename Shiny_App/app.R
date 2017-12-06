@@ -20,7 +20,6 @@ library(plotly)
 library(colourpicker)
 library(rpart.plot)
 library(party)
-install.packages()
 
 source("helper.R")
 source("Group2Functions.R")
@@ -556,13 +555,36 @@ server <- function(input, output) {
         return(NULL)
       }
       
-      dep_var <- input$regression
-      min_split <- input$min_split
-      min_bucket <- input$min_bucket
-      
-      regression_tree(dep_var, min_split, min_bucket, efficacy_summary_file)
+      if (input$regression == "ELU") {
         
+        function_data <- efficacy_summary_file %>%
+          filter(!is.na(ELU))
+        
+        tree <- rpart(ELU ~  drug + dosage + level + 
+                        PLA + ULU + RIM + OCS + ICS + SLU + SLE + 
+                        cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
+                        Caseum_binding + MacUptake,
+                      data = function_data, 
+                      control = rpart.control(cp = -1, minsplit = input$min_split, 
+                                              minbucket = input$min_bucket))
+        return(rpart.plot(tree))
+      }
       
+      if (input$regression == "ESP") {
+        
+        function_data <- efficacy_summary_file %>%
+          filter(!is.na(ESP))
+        
+        tree <- rpart(ESP ~  drug + dosage + level + 
+                        PLA + ULU + RIM + OCS + ICS + SLU + SLE + 
+                        cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
+                        Caseum_binding + MacUptake,
+                      data = function_data, 
+                      control = rpart.control(cp = -1, minsplit = input$min_split, 
+                                              minbucket = input$min_bucket))
+        return(rpart.plot(tree))
+      }
+        
 }) 
     
 
