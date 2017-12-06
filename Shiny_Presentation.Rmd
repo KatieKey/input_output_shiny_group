@@ -10,11 +10,12 @@ runtime: shiny
 
 1. Rationale for what we did
 2. Idea development
-3. Overview of datasets and tidying process
+3. Datasets and the tidying process
 4. Shiny app development
 5. Challenges
 6. What we would do differently
 7. Interesting
+8. Possible Errors
 8. Conclusions
 
 ########################
@@ -25,6 +26,13 @@ runtime: shiny
 - cleaning the data into "tidy" formats
 - developing an R Shiny App that displays summaries of the clean data and
   displays graphs created by the other groups
+
+########################
+
+##Idea Development
+
+- Originally planned to combine all data into one or two large datasets
+- Getting information from Mike changed this to cleaning datasets all individually
 
 ########################
 
@@ -43,7 +51,12 @@ runtime: shiny
 
 ```{r, echo=FALSE, warning=FALSE,message=FALSE, fig.height=4, fig.width=8}
 
-
+shinyAppDir(
+  system.file("examples/06_tabsets", package="shiny"),
+  options=list(
+    width="100%", height=700
+  )
+)
 
 ```
 
