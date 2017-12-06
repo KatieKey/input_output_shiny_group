@@ -575,12 +575,20 @@ server <- function(input, output) {
       if (input$regression == "ELU") {
         
         function_data <- efficacy_summary_file %>%
-          filter(!is.na(ELU))
+          filter(!is.na(ELU)) %>% 
+          rename(plasma = PLA, `Uninvolved lung` = ULU,
+                 `Rim (of Lesion)` = RIM, `Outer Caseum` = OCS, `Inner Caseum` = ICS,
+                 `Standard Lung` = SLU, `Standard Lesion` = SLE, `Human Plasma Binding` = huPPB,
+                 `Mouse Plasma Binding` = muPPB, `MIC Erdman Strain` = MIC_Erdman,
+                 `MIC Erdman Strain with Serum` = MICserumErd, `MIC rv strain` = MIC_Rv,
+                 `Caseum binding` = Caseum_binding, `Macrophage Uptake (Ratio)` = MacUptake)
         
         tree <- rpart(ELU ~  drug + dosage + level + 
-                        PLA + ULU + RIM + OCS + ICS + SLU + SLE + 
-                        cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
-                        Caseum_binding + MacUptake,
+                        plasma + `Uninvolved lung` + `Rim (of Lesion)` + `Outer Caseum` + 
+                        `Inner Caseum` + `Standard Lung` + `Standard Lesion` + 
+                        cLogP + `Human Plasma Binding` + `Mouse Plasma Binding` + 
+                        `MIC Erdman Strain` + `MIC Erdman Strain with Serum` + `MIC rv strain` + 
+                        `Caseum binding` + `Macrophage Uptake (Ratio)`,
                       data = function_data, 
                       control = rpart.control(cp = -1, minsplit = input$min_split, 
                                               minbucket = input$min_bucket))
@@ -590,12 +598,20 @@ server <- function(input, output) {
       if (input$regression == "ESP") {
         
         function_data <- efficacy_summary_file %>%
-          filter(!is.na(ESP))
+          filter(!is.na(ESP)) %>% 
+          rename(plasma = PLA, `Uninvolved lung` = ULU,
+                 `Rim (of Lesion)` = RIM, `Outer Caseum` = OCS, `Inner Caseum` = ICS,
+                 `Standard Lung` = SLU, `Standard Lesion` = SLE, `Human Plasma Binding` = huPPB,
+                 `Mouse Plasma Binding` = muPPB, `MIC Erdman Strain` = MIC_Erdman,
+                 `MIC Erdman Strain with Serum` = MICserumErd, `MIC rv strain` = MIC_Rv,
+                 `Caseum binding` = Caseum_binding, `Macrophage Uptake (Ratio)` = MacUptake)
         
         tree <- rpart(ESP ~  drug + dosage + level + 
-                        PLA + ULU + RIM + OCS + ICS + SLU + SLE + 
-                        cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
-                        Caseum_binding + MacUptake,
+                        plasma + `Uninvolved lung` + `Rim (of Lesion)` + `Outer Caseum` + 
+                        `Inner Caseum` + `Standard Lung` + `Standard Lesion` + 
+                        cLogP + `Human Plasma Binding` + `Mouse Plasma Binding` + 
+                        `MIC Erdman Strain` + `MIC Erdman Strain with Serum` + `MIC rv strain` + 
+                        `Caseum binding` + `Macrophage Uptake (Ratio)`,
                       data = function_data, 
                       control = rpart.control(cp = -1, minsplit = input$min_split, 
                                               minbucket = input$min_bucket))
