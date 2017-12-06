@@ -10,3 +10,6 @@ efficacy_summary_file <- read_csv(efficacy_summary_file_1)
 
 ELU <- ELU
 ESP <- ESP
+
+fifty <- "50"
+hundred <- "100"

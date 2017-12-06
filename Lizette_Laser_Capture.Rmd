@@ -13,9 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(readxl)
-read_csv("C:/Users/Lizette/Documents/Masters/R_Programming_Fall_2017/input_output_shiny_group/CSV_Files/clean_3.csv")
+read_csv("CSV_Files/clean_3.csv")
 
-setwd("~/Masters/R_Programming_Fall_2017/input_output_shiny_group")
+# setwd("~/Masters/R_Programming_Fall_2017/input_output_shiny_group")
 ```
 
 ```{r}

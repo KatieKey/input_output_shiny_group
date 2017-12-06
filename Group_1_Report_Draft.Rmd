@@ -3,7 +3,7 @@ title: "R Programming Report – Draft"
 author: "Elle Holbrook, Katie Key, Brian Kim, Lizette Van Zyl"
 output: word_document
 ---
-### Introduction
+### Rationale
 
 For the final project, our group was tasked with the input and output of the data via the Shiny app. This involved appropriately "tidying" the different data tables and outputting the other groups' graphs and plots in the Shiny app. Since there were four different data tables, each group member was challenged to tidy one of the data sets. The data sets were labeled: efficacy, plasma, tissue laser, and tissue standard pk. Each member of our group describes the work they did individually to those data sets. One group also describes the work she did to an original template of the data we received. These descriptions are followed by challenges faced and lesson learned by the group as a whole.
 
@@ -41,9 +41,9 @@ After this, the data was spread so that the each mouse id had four columns, each
 
 The standard PK data template contained information on the pharmacokinetic properties of the drugs tested on a mouse-by-mouse level (not averaged for each drug). The pharmacokinetic properties of the drugs were measured at different timepoints (typically Cmax and trough) and in different compartments (within the lesion and within the general lung tissue) for each mouse. 
 
-The original template did not contain mouse IDs of any kind, so once the data were loaded in a vector of IDs was created to add as a new column in the dataset. First, however, the data needed to be examined to determine how many unique mice the file contained; it was determined that for each distinct combination of `Compound`, `Group` and `Protocol_Animal`, two measurements were taken (lung and lesion compartments) and it was assumed that each of these pairs were taken from one mouse. Therefore, the numerical ID vector was created to match the length of the dataframe and have each ID repeated two times. `select` was used to limit the dataset to only the necessary columns, the `Compound` and `Parent` columns were renamed to be more descriptive and then `spread` was used to convert the `Comparment` column into columns for each compartment, containing the respective `Parent` values. These new columns were then renamed to match the `SLE` and `SLU` variable names in the tidy data templates and recoded as numerical values. 
+The original template did not contain mouse IDs of any kind, so once the data were loaded in a vector of IDs was created to add as a new column in the dataset. First, however, the data needed to be examined to determine how many unique mice the file contained; it was determined that for each distinct combination of `Compound`, `Group` and `Protocol_Animal`, two measurements were taken (lung and lesion compartments) and it was assumed that each of these pairs were taken from one mouse. Therefore, the numerical ID vector was created to match the length of the dataframe and have each ID repeated two times. `select` was used to limit the dataset to only the necessary columns, the `Compound` and `Parent` columns were renamed to be more descriptive and then `spread` was used to convert the `Compartment` column into columns for each compartment, containing the respective `Parent` values. These new columns were then renamed to match the `SLE` and `SLU` variable names in the tidy data templates and recoded as numerical values. 
 
-### Challenges
+### Idea Development
 
 One of the biggest challenges, which we still don't quite have an answer to, is that the dosage and dose interval data are missing from the mouse-by-mouse level spreadsheets. Another efficacy template contains this information but each drug appears to have more than one dose and/or dose interval within that spreadsheet so it can't be assumed that every mouse received the same dose/dose interval for a given compound. Additionally, we realized after creating the tidy data templates that it was much more challenging to relate information between the different tables, so it couldn't be assumed that a mouse within the standard PK template was also listed within the laser capture template, for example; therefore, these mouse-by-mouse level templates could not be combined into one file. Additionally, assumptions were made about the units of observation for these files (described above).
 
@@ -51,15 +51,22 @@ Therefore, one of the greatest challenges we faced when trying to tidy the diffe
 
 In regards to the output of the data tables and graphical representations in the Shiny app, the biggest challenged we faced was learning the coding that is unique to Shiny apps. The codes needed to effectively run at Shiny app are written a bit differently than those needed to run functions in a .R file, for example. Further, the Shiny app is very particular in how the ui and server aspects of the app work together. We had a difficult time getting the Shiny app to upload and recognize the Excel file inputs before Dr. Anderson helped us write the code for it. 
 
-### Do Differently
-
 If we had the opportunity to go back, we feel it would have been beneficial to contact the principal investigators earlier. Earlier contact with the principal investigators would ensure a mutual understanding of what variables were of greatest importance and a better understanding of the background knowledge in microbiology necessary to understand the data. Further, communicating with the research group sooner could have allowed us to work more efficienty. We ended up "tidying" two sets of templates while only needing one for the Shiny app and for the other groups. Unfortunately, we believe groups may have been using the original templates to write their functions and develop their graphs and not the ones that would actually be used by the research group utilizing the Shiny app we created. 
 
 Our group also feel that it would have been beneficial to communicate with the other two groups sooner, not only to ensure that they understand the files we created but also to help us understand what graphs, images, and relationships they were looking at and would like to see within the final Shiny app.
 
-### Interesting Things in Data
+### Room for Errors
+
+There are safeguards built into the Shiny app to try and prevent the occurences of an error message or returning something unexpected. One safeguard built into the Shiny app is that the user has the ability to view the raw data files. However, there are ways for the user to return an error message when using our functions. If the user uploads raw datafiles that have entire columns with missing observations, an error message could return. Additionally, raw datafiles that, for whatever reason, are not in the same format as the raw data files used to write the functions, an error message will be returned. For example, if a column in a raw datafile has a different title, then the function will not work as intended. A third way the user could return an error message is by...
+
+### Next Steps
+
+While our shiny app and functions are all working, future work could include the use of reactive expressions. Using reactive expressions allows for the app to run more smoothly and quickly by reducing unnecessary computations.
+
+###Conclusion
 
 It was interesting to think about the challenges surrounding identifying individual mice and how their data could be related to that of other mice in the studies. We hadn't previously considered the issues inherent in the fact that one mouse, as small as it is, can only be used for so many measurements before another mouse is needed to round out the data for a given drug.
 
 Overall, we learned a lot about the importance of "tidy" data using real data. It was an important lesson to learn that not all data we may receive will be clean. However, it was rewarding to take the research group's data collected from a lot of time and hard work and be able to give them a Shiny app that allows them to visually and analytically explore their data all in one go.
+
 
