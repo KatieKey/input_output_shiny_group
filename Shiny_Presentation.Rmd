@@ -61,7 +61,7 @@ provided at the beginning of the project.
 - fix original files that had missing rows
 - input dummy ids for columns that had no information (mice ids)
 - `select` down to only relevant columns
-- 
+- `gather` or `spread` data to make control easier for visuals groups
 
 ########################
 
@@ -88,6 +88,8 @@ provided at the beginning of the project.
 
 - communicate with research group earlier on  
 - communicate with other groups for efficiency  
+- create "test" version of app that doesn't have to load files every time while
+  developing the app
 
 ########################
 
@@ -101,9 +103,13 @@ provided at the beginning of the project.
 
 ## Possible errors
 
--   
-
-
+- Too few/missing columns in input dataframe
+- Wrong column names
+- Inputting data in format other than Excel
+- Different data class in columns
+- Missing rows in orginal files instead of using NAs
+- Inputting values in differing units throughout file
+  (won't break code but will mess up analysis)
 
 ########################
 ## Conclusions
@@ -111,5 +117,5 @@ provided at the beginning of the project.
 - how real world data is not always tidy  
 - reward to create the Shiny app  
 
-possible errors: too few columns, wrong column names, not using excel, different data class in a column, missing rows instead of NAs, inputting values in differing units (won't break code but will mess up analysis)
+########################
 
