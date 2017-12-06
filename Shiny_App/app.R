@@ -18,6 +18,9 @@ library(rpart)
 library(ggbeeswarm)
 library(plotly)
 library(colourpicker)
+library(rpart.plot)
+library(party)
+install.packages()
 
 source("helper.R")
 source("Group2Functions.R")
@@ -181,7 +184,7 @@ ui <- fluidPage(
                   
                   tabPanel("Independent ~ Dependent", 
                            tabsetPanel(type = "tabs",
-                                       tabPanel("RegressionTree",
+                                       tabPanel("Regression_Tree",
                                                 radioButtons("regression", label = "Pick a Variable",
                                                              choices = list("Lung Efficacy" = ELU,
                                                                          "Spleen Efficacy" = ESP)
@@ -548,31 +551,22 @@ server <- function(input, output) {
     ##regression tree
     
     output$regression_tree <- renderPlot({
-      
-      efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
-                                        "master/CSV_Files/efficacy_summary.csv")
-      efficacy_summary_file <- read_csv(efficacy_summary_file_1)
 
       if(is.null(efficacy_summary_file)){
         return(NULL)
       }
       
-        function_data <- efficacy_summary_file %>%
-          filter(!is.na(input$regression))
+      dep_var <- input$regression
+      min_split <- input$min_split
+      min_bucket <- input$min_bucket
+      
+      regression_tree(dep_var, min_split, min_bucket, efficacy_summary_file)
         
-        tree <- rpart(input$regression ~  drug + dosage + level + 
-                        PLA + ULU + RIM + OCS + ICS + SLU + SLE + 
-                        cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
-                        Caseum_binding + MacUptake,
-                      data = function_data, 
-                      control = rpart.control(cp = -1, minsplit = input$min_split, 
-                                              minbucket = input$min_bucket))
-        return(tree)
-
-        }) 
+      
+}) 
     
 
-    }
+}
 
 
 # Run the application 

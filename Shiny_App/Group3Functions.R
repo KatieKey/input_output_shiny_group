@@ -2,10 +2,16 @@
 #FROM: https://github.com/dfat5/erhs_535_group3
 
 ##regression tree function
-ELU = "ELU"
-ESP = "ESP"
 
-regression_tree_function <- function(dep_var, min_split, min_bucket, efficacy_summary_file) {
+efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
+                                  "master/CSV_Files/efficacy_summary.csv")
+efficacy_summary_file <- read_csv(efficacy_summary_file_1)
+
+
+ELU <- "ELU"
+ESP <- "ESP"
+
+regression_tree <- function(dep_var, min_split, min_bucket, efficacy_summary_file) {
   
   if (dep_var == "ELU") {
     
@@ -19,7 +25,6 @@ regression_tree_function <- function(dep_var, min_split, min_bucket, efficacy_su
                   data = function_data, 
                   control = rpart.control(cp = -1, minsplit = min_split, 
                                           minbucket = min_bucket))
-    return(tree)
   }
   
   if (dep_var == "ESP") {
@@ -34,10 +39,9 @@ regression_tree_function <- function(dep_var, min_split, min_bucket, efficacy_su
                   data = function_data, 
                   control = rpart.control(cp = -1, minsplit = min_split, 
                                           minbucket = min_bucket))
-    return(tree)
   }
+  
+  return(fancyRpartPlot(tree))
 }
 
 ##
-
-
