@@ -25,6 +25,7 @@ efficacy_function <- function(efficacy_df){
            drug = Compound) %>%
     mutate_at(c("lung_efficacy", "spleen_efficacy"), as.numeric) %>% 
     mutate_at(c("dose_interval", "days_treatment"), as.factor) %>%
+    mutate(drug = ifelse(Group == "PreRX", "Baseline", drug)) %>% 
     group_by(Protocol_Animal, drug, Group, dosage, days_treatment, dose_interval) %>% 
     summarize(lung_efficacy_log = log10(lung_efficacy),
               spleen_efficacy_log = log10(spleen_efficacy))
@@ -33,7 +34,6 @@ efficacy_function <- function(efficacy_df){
   levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QD"
   levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
   levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
-  levels(efficacy_clean$drug)[levels(efficacy_clean$drug)==""] <- "Baseline"
   
   
   efficacy_clean <- efficacy_clean %>% 
