@@ -158,7 +158,8 @@ tissue_std_pk_summarize <- function(tissue_std_pk_clean){
 ###### in_vitro_function cleans raw in_vitro data in Shiny app
 in_vitro_function <- function(in_vitro_df){
   in_vitro_clean <- in_vitro_df %>% 
-    rename(drug = Drug)
+    rename(drug = Drug) %>% 
+    mutate_at(c("huPPB", "MIC_Rv", "MacUptake"), as.numeric)
   return(in_vitro_clean)
 }
 
