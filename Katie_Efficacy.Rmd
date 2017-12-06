@@ -9,7 +9,7 @@ mouse_id, compound, group, protocol_animal,
 drug_dose, formulation, dose_frequency, days_treatment combined with treatment_interval
 
 
-```{r, warning=FALSE,echo=FALSE,message=FALSE}
+```{r, warning=FALSE,echo=TRUE,message=FALSE}
 
 library(readxl)
 library(readr)
@@ -20,9 +20,9 @@ library(utils)
 ```
 
 
-```{r, warning=FALSE,echo=FALSE,message=FALSE}
+```{r, warning=FALSE,echo=TRUE,message=FALSE}
 
-efficacy <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
+efficacy <- read_excel("data/Gates_18 Efficacy R spreadsheet.xlsx")
 
 efficacy_clean <- efficacy %>% 
   select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
@@ -42,7 +42,7 @@ efficacy_clean <- efficacy %>%
             spleen_efficacy_log = log10(spleen_efficacy))
 
 levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="Pre Rx 9 week"] <- "_Baseline"
-levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QID"
+levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QD"
 levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
 levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
 
@@ -60,15 +60,15 @@ write_csv(efficacy_clean, path = paste0(getwd(), "/CSV_Files/clean_efficacy.csv"
 ```
 
 
-```{r, warning=FALSE,echo=FALSE,message=FALSE}
+```{r, warning=FALSE,echo=TRUE,message=FALSE}
 
 # put this as a fileupload widget in the app ?
 
 
-efficacy_data <- read_excel("~/Documents/Colorado State/R_Programming_Directory/input_output_shiny_group/data/Gates_18 Efficacy R spreadsheet.xlsx")
+efficacy_data <- read_excel("data/Gates_18 Efficacy R spreadsheet.xlsx")
 
-efficacy_function <- function(inputId){
-  efficacy_clean <- efficacy %>% 
+efficacy_function <- function(efficacy_input){
+  efficacy_clean <- efficacy_input %>% 
   select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
          Treatment_Interval,Elung,Espleen) %>% 
   rename(lung_efficacy = Elung,
@@ -89,6 +89,8 @@ levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="Pre 
 levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QID"
 levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
 levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
+levels(efficacy_clean$drug)[levels(efficacy_clean$drug)==""] <- "Baseline"
+
 
 efficacy_clean <- efficacy_clean %>% 
   unite(days_dose, days_treatment, dose_interval, sep = "") %>% 
@@ -100,7 +102,9 @@ efficacy_clean <- efficacy_clean %>%
   return(efficacy_clean)
 }
 
-efficacy_function()
+
+
+efficacy_function(efficacy_data)
 
 ```
 

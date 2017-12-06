@@ -29,7 +29,8 @@ clean_plasma <- plasma %>%
          Plasma_Parent) %>%
   rename(drug = Compound, 
          mouse_number = MouseID, 
-         plasma_concentration = Plasma_Parent)
+         plasma_concentration = Plasma_Parent) %>%
+  mutate(Group = as.character(Group))
 ```
 
 Here I write the data frame clean_plasma to a csv file
@@ -51,5 +52,6 @@ plasma_function <- function(inputID){
   rename(drug = Compound, 
          mouse_number = MouseID, 
          plasma_concentration = Plasma_Parent)
+  mutate(Group = as.character(Group))
 }
 ```
