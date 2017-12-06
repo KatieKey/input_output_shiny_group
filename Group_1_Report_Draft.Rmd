@@ -61,7 +61,12 @@ There are safeguards built into the Shiny app to try and prevent the occurences 
 
 ### Next Steps
 
+While our shiny app and functions are all working, future work could include the use of reactive expressions. Using reactive expressions allows for the app to run more smoothly and quickly by reducing unnecessary computations.
+
+###Conclusion
+
 It was interesting to think about the challenges surrounding identifying individual mice and how their data could be related to that of other mice in the studies. We hadn't previously considered the issues inherent in the fact that one mouse, as small as it is, can only be used for so many measurements before another mouse is needed to round out the data for a given drug.
 
 Overall, we learned a lot about the importance of "tidy" data using real data. It was an important lesson to learn that not all data we may receive will be clean. However, it was rewarding to take the research group's data collected from a lot of time and hard work and be able to give them a Shiny app that allows them to visually and analytically explore their data all in one go.
+
 
