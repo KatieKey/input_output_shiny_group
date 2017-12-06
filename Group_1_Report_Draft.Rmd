@@ -55,9 +55,11 @@ If we had the opportunity to go back, we feel it would have been beneficial to c
 
 Our group also feel that it would have been beneficial to communicate with the other two groups sooner, not only to ensure that they understand the files we created but also to help us understand what graphs, images, and relationships they were looking at and would like to see within the final Shiny app.
 
+Finally, it would have been useful for our group to create our own templates sooner. As previously mentioned, the original template did not contain all the informations needed. 
+
 ### Room for Errors
 
-There are safeguards built into the Shiny app to try and prevent the occurences of an error message or returning something unexpected. One safeguard built into the Shiny app is that the user has the ability to view the raw data files. However, there are ways for the user to return an error message when using our functions. If the user uploads raw datafiles that have entire columns with missing observations, an error message could return. Additionally, raw datafiles that, for whatever reason, are not in the same format as the raw data files used to write the functions, an error message will be returned. For example, if a column in a raw datafile has a different title, then the function will not work as intended. A third way the user could return an error message is by...
+There are safeguards built into the Shiny app to try and prevent the occurences of an error message or returning something unexpected. One safeguard built into the Shiny app is that the user has the ability to view the raw data files. However, there are ways for the user to return an error message when using our functions. If the user uploads raw datafiles that have entire columns with missing observations, an error message could return. Additionally, raw datafiles that, for whatever reason, are not in the same format as the raw data files used to write the functions, an error message will be returned. For example, if a column in a raw datafile has a different title, then the function will not work as intended. A third way the user could return an error message is by trying to upload a file in a format other than Microsoft Excel. 
 
 ### Next Steps
 
