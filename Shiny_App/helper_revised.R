@@ -49,6 +49,28 @@ efficacy_summary <- function(efficacy_clean){
   return(efficacy_clean_summarized)
 }
 
+#### plasma_function cleans raw plasma data in Shiny app
+#Function Title: Cleaning Plasma Dataframe
+
+#This function has a dataframe as an argument. The dataframe contains data on plasma
+#concentrations. The function cleans the plasma dataframe by selecting only the needed
+#variables, renaming variables, and changing the group column to a character.
+
+plasma_function <- function(plasma_df){
+  plasma_clean <- plasma_df %>%
+    select(MouseID, 
+           Compound, 
+           Group, 
+           Protocol_Animal, 
+           Dosing, 
+           Timepoint, 
+           Plasma_Parent) %>%
+    rename(drug = Compound, 
+           mouse_number = MouseID, 
+           plasma_concentration = Plasma_Parent)  %>%
+    mutate(Group = as.character(Group))
+  return(plasma_clean)
+}
 
 ##### Clean the tissue laser data into a tidy format
 
