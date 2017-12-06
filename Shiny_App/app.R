@@ -357,23 +357,6 @@ server <- function(input, output) {
       in_vitro_df()
     })
     
-# render raw efficacy summary table    
-    output$raw_efficacy_summary_table <- DT::renderDataTable({
-      efficacy_summary_file <- input$efficacy_summary
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(efficacy_summary_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(efficacy_summary_file$name)
-      file.rename(efficacy_summary_file$datapath, 
-                  paste(efficacy_summary_file$datapath, ext, sep = "."))
-      read_excel(paste(efficacy_summary_file$datapath, ext, sep = "."), sheet = 1)
-      
-    })
-    
-
 ######## CODE FOR RENDERING CLEAN DATA
   
 # Render data table with clean efficacy data
