@@ -27,19 +27,7 @@ efficacy_function <- function(efficacy_df){
     mutate_at(c("dose_interval", "days_treatment"), as.factor) %>%
     mutate(drug = ifelse(Group == "PreRX", "Baseline", drug)) %>% 
     mutate(lung_efficacy_log = log10(lung_efficacy),
-           spleen_efficacy_log = log10(spleen_efficacy))
-  
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="Pre Rx 9 week"] <- "_Baseline"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="M-F"] <- "_QD"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="4 wk"] <- "20_Control"
-  levels(efficacy_clean$dose_interval)[levels(efficacy_clean$dose_interval)=="8 wk"] <- "40_Control"
-  
-  
-  efficacy_clean <- efficacy_clean %>% 
-    unite(days_dose, days_treatment, dose_interval, sep = "") %>% 
-    separate(days_dose, c("days", "dose"), sep = "_") %>% 
-    rename("days_treatment" = days,
-           "dose_interval" = dose) %>% 
+           spleen_efficacy_log = log10(spleen_efficacy)) %>% 
     mutate(days_treatment = as.numeric(days_treatment))
   
   return(efficacy_clean)
