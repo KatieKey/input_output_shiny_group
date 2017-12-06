@@ -5,13 +5,27 @@ date: "December 1, 2017"
 output: word_document
 ---
 
-A brief report (4 to 5 pages) describing how the group tackled their problem, what pieces were particularly challenging and how they tackled those, what they would do differently if they started fresh, and what interesting things they found in this set of data. 
+# Description of creating the tidy efficacy summary
+The tidy efficacy summary file originated as an Excel file with three tables in one sheet. The first contained data on efficacy measured at maximum blood concentration summarized by drug; the second contained similar data on efficacy measured at trough blood concentration; and the third was a metadata table containing brief descriptions of the abbreviated variable names in the columns of all the different data files. Loading in the lung and spleen efficacy tables wasn't difficult, but the metadata were stored in two different columns each containing a different number of rows so it took some time to find a way to combine these pieces of information into one column within a vector or dataframe.
 
-Description of creating the tidy efficacy summary
-Description of cleaning the standard PK template
+Cleaning the two concentration efficacy tables required 5 basic steps. First, because the first column of the dataset, which contains drug names, had no header in the original file, when the data were loaded in it was named `X__1` and needed to be renamed to `drug`. Next a series of `mutate` steps was needed. Because the first table contained data obtained at the Cmax and the second at the trough, a column called `level` was created for each in which all cells indicated either Cmax or trough, respectively. Then the `Dose` column needed to be split into two variables. Using regular expressions, numerical values from the `Dose` column were pulled into a new `dosage` column and other character values were incorporated into a `dose_int` column. Next the `ULU` through `MacUptake` columns needed to be recoded as numerical values, followed by a `select` step to remove the `Dose` column and other columns no longer needed.
 
-Challenges: dosage data missing, difficult to relate information between tables (assumptions made)
+The tidy efficacy summary table was created by using `bind_rows` to put the Cmax and trough data into one table, converting to a dataframe and writing to a csv file.
 
-Do differently: more communication with other groups sooner
 
-Interesting things in data: 
+# Description of creating the tidy standard PK template
+The standard PK data template contained information on the pharmacokinetic properties of the drugs tested on a mouse-by-mouse level (not averaged for each drug). The pharmacokinetic properties of the drugs were measured at different timepoints (typically Cmax and trough) and in different compartments (within the lesion and within the general lung tissue) for each mouse. 
+
+The original template did not contain mouse IDs of any kind, so once the data were loaded in a vector of IDs was created to add as a new column in the dataset. First, however, the data needed to be examined to determine how many unique mice the file contained; it was determined that for each distinct combination of `Compound`, `Group` and `Protocol_Animal`, two measurements were taken (lung and lesion compartments) and it was assumed that each of these pairs were taken from one mouse. Therefore, the numerical ID vector was created to match the length of the dataframe and have each ID repeated two times. `select` was used to limit the dataset to only the necessary columns, the `Compound` and `Parent` columns were renamed to be more descriptive and then `spread` was used to convert the `Comparment` column into columns for each compartment, containing the respective `Parent` values. These new columns were then renamed to match the `SLE` and `SLU` variable names in the tidy data templates and recoded as numerical values. 
+
+
+# Challenges
+The biggest challenge, which we still don't quite have an answer to, is that the dosage and dose interval data are missing from the mouse-by-mouse level spreadsheets. Another efficacy template contains this information but each drug appears to have more than one dose and/or dose interval within that spreadsheet so it can't be assumed that every mouse received the same dose/dose interval for a given compound. Additionally, we realized after creating the tidy data templates that it was much more challenging to relate information between the different tables, so it couldn't be assumed that a mouse within the standard PK template was also listed within the laser capture template, for example; therefore, these mouse-by-mouse level templates could not be combined into one file. Additionally, assumptions were made about the units of observation for these files (described above).
+
+
+# Do differently
+Our group felt that it would have been beneficial to communicate with the other two groups sooner, not only to ensure that they understand the files we created but also to help us understand what graphs, images and relationships they were looking at and would like to see within the final Shiny app.
+
+
+# Interesting things in data
+It was interesting to think about the challenges surrounding identifying individual mice and how their data could be related to that of other mice in the studies. We hadn't previously considered the issues inherent in the fact that one mouse, as small as it is, can only be used for so many measurements before another mouse is needed to round out the data for a given drug.
