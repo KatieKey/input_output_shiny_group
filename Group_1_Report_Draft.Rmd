@@ -64,7 +64,7 @@ There are safeguards built into the Shiny app to try and prevent the occurences 
 
 ### Next Steps
 
-While our Shiny app and functions are all working, future work could include the use of reactive expressions. Using reactive expressions allows for the app to run more smoothly and quickly by reducing unnecessary computations.
+While our Shiny app and functions are all working, future work could include the use of reactive expressions. Using reactive expressions allows for the app to run more smoothly and quickly by reducing unnecessary computations. 
 
 ###Conclusion
 
