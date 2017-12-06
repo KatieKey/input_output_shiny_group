@@ -45,7 +45,8 @@ tissue_laser_summary <- function(tissue_laser_clean){
 tissue_std_pk_function <- function(tissue_std_pk_df){
   tissue_std_pk_clean <- tissue_std_pk_df %>% 
     mutate(mouse_number = MouseID) %>%
-    select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
+    select(Compound, mouse_number, Drug_Dose, Dose_Frequency, Group, 
+           Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
     rename(drug = Compound,
            `Parent [ng/ml]` = Parent) %>% 
     spread(key = Compartment, value = `Parent [ng/ml]`) %>% 
