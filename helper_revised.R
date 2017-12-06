@@ -16,7 +16,6 @@ tissue_laser_function <- function(tissue_laser_df) {
     spread(key = Compartment, value = `Parent [ng/ml]`) %>%
     rename(ULU = `uninvolved lung`, RIM = rim,
            OCS = `outer caseum`, ICS = `inner caseum`) %>%
-    mutate(ULU = as.numeric(ULU), RIM = as.numeric(RIM),
-           OCS = as.numeric(OCS), ICS = as.numeric(ICS))
+    mutate_at(c("ULU", "RIM", "OCS", "ICS"), as.numeric)
   return(tissue_laser_clean)
 }
