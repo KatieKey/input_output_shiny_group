@@ -60,6 +60,8 @@ plasma_function <- function(plasma_df){
   plasma_clean <- plasma_df %>%
     select(MouseID, 
            Compound, 
+           Drug_Dose,
+           Dose_Frequency,
            Group, 
            Protocol_Animal, 
            Dosing, 
