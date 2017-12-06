@@ -20,6 +20,8 @@ library(plotly)
 library(colourpicker)
 library(rpart.plot)
 library(party)
+library(randomForest)
+library(tibble)
 
 source("helper.R")
 source("Group2Functions.R")
@@ -192,7 +194,11 @@ ui <- fluidPage(
                                                 numericInput("min_bucket", label = h3("Minimum Buckets for Regression Tree"), value = 1, min = 0),
                                                 plotOutput("regression_tree")
                                                 ),
-                                       tabPanel("Drews"),
+                                       tabPanel("Best Variables",
+                                                radioButtons("variable", label = "Pick a Variable",
+                                                             choices = list("Lung Efficacy" = ELU,
+                                                                            "Spleen Efficacy" = ESP)),
+                                                plotlyOutput("best_variables")),
                                        tabPanel("KateScatter"),
                                        tabPanel("KateCoefficient"),
                                        tabPanel("Maggie")
@@ -587,8 +593,78 @@ server <- function(input, output) {
         
 }) 
     
-
+    
+###### best variables output
+    
+    output$best_variables <- renderPlotly({
+    
+    if(input$variable == "ELU"){
+      dataset <- efficacy_summary_file %>% 
+        select(-ESP) %>% 
+        mutate(huPPB = as.numeric(huPPB), 
+               muPPB = as.numeric(muPPB), 
+               dosage = as.factor(dosage), 
+               dose_int = as.factor(dose_int), 
+               level = as.factor(level), 
+               drug = as.factor(drug))
+      
+      efficacy.rf <- randomForest( ELU~ ., data =dataset,
+                                   na.action = na.roughfix,
+                                   ntree= 1000, 
+                                   importance = TRUE)
+      graph <-importance(efficacy.rf, type = 1) %>% 
+        as.data.frame() %>% 
+        rownames_to_column() %>% 
+        rename(variable = rowname, 
+               mse = `%IncMSE`) 
+      
+      
+      graph <- graph %>% 
+        filter(mse > 0) %>% 
+        ggplot()+
+        geom_point(aes(x = mse, y = reorder(variable, mse)))+
+        theme_minimal()+
+        labs(y = "Variable", 
+             x = "Importance")
+      return(ggplotly(graph))
+    }
+    
+    if (input$variable == "ESP"){
+      dataset <- efficacy_summary_file %>% 
+        select(-ELU) %>% 
+        mutate(huPPB = as.numeric(huPPB), 
+               muPPB = as.numeric(muPPB), 
+               dosage = as.factor(dosage), 
+               dose_int = as.factor(dose_int), 
+               level = as.factor(level), 
+               drug = as.factor(drug))
+      
+      efficacy.rf <- randomForest( ESP ~ ., data =dataset,
+                                   na.action = na.roughfix,
+                                   ntree= 1000, 
+                                   importance = TRUE)
+      
+      graph <-importance(efficacy.rf, type = 1) %>% 
+        as.data.frame() %>% 
+        rownames_to_column() %>% 
+        rename(variable = rowname, 
+               mse = `%IncMSE`) 
+      
+      
+      graph <- graph %>% 
+        filter(mse > 0) %>% 
+        ggplot()+
+        geom_point(aes(x = mse, y = reorder(variable, mse)))+
+        theme_minimal()+
+        labs(y = "Variable", 
+             x = "Importance")
+      return(ggplotly(graph))
+    }
+    
+    })
+    
 }
+
 
 
 # Run the application 
