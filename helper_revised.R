@@ -8,7 +8,8 @@ library(dplyr)
 tissue_laser_function <- function(tissue_laser_df) {
   tissue_laser_clean <- tissue_laser_df %>%
     rename(`Parent [ng/ml]` = Parent) %>%
-    select(-StudyID, -Metabolite, - Units, - Collection, - `Sample ID`)
+    select(MouseID, Compound, Drug_Dose, Dose_Frequency, Group, Protocol_Animal,
+           Dosing, Timepoint, Timepoint_Hours, Compartment, `Parent [ng/ml]`)
   
   n <- nrow(tissue_laser_clean)
   mice_ids <- rep(c(1:(n/4)), each = 4)
