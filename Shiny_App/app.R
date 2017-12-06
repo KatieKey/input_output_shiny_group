@@ -39,7 +39,9 @@ ui <- fluidPage(
                  fileInput(label = "Tissue Laser", inputId = "tissue_laser", 
                            buttonLabel = "Tissue Laser Data", multiple = TRUE, accept = ".xlsx"),
                  fileInput(label = "Tissue Std PK", inputId = "tissue_std_pk", 
-                           buttonLabel = "Tissue Std PK Data", multiple = TRUE, accept = ".xlsx")
+                           buttonLabel = "Tissue Std PK Data", multiple = TRUE, accept = ".xlsx"),
+                 fileInput(label = "In Vitro", inputId = "invitro", 
+                           buttonLabel = "In Vitro Data", multiple = TRUE, accept = ".xlsx")
                   ),
     
     mainPanel(width = 8,
@@ -57,6 +59,9 @@ ui <- fluidPage(
                                 ),
                              tabPanel("Tissue Std PK",
                                 DT::dataTableOutput("raw_tissue_std_pk_table")
+                                ),
+                             tabPanel("In Vitro",
+                                      DT::dataTableOutput("raw_invitro_table")
                                 )
                                 )
                                 ),
@@ -74,6 +79,9 @@ ui <- fluidPage(
                                                 ),
                                        tabPanel("Tissue Std PK",
                                                 DT::dataTableOutput("clean_tissue_std_pk_table")
+                                                ),
+                                       tabPanel("In Vitro",
+                                                DT::dataTableOutput("clean_invitro_table")
                                                 ),
                                        tabPanel("Efficacy Summary",
                                                 helpText("Used for In Vitro & In Vivo Plots in 'Independent' Tab"),
@@ -95,6 +103,9 @@ ui <- fluidPage(
                                                 ),
                                        tabPanel("Tissue Std PK",
                                                 plotOutput("summary_tissue_std_pk_plot")
+                                                ),
+                                       tabPanel("In Vitro",
+                                                plotOutput("summary_invitro_plot")
                                                 ),
                                        tabPanel("Efficacy Summary",
                                                 plotOutput("summary_efficacy_summary_plot")
@@ -272,6 +283,22 @@ server <- function(input, output) {
     })
     
 # Render data table for raw in vitro data
+    output$raw_invitro_table <- DT::renderDataTable({
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath, 
+                  paste(invitro_file$datapath, ext, sep = "."))
+      read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      
+    })
+    
+# render raw efficacy summary table    
     output$raw_efficacy_summary_table <- DT::renderDataTable({
       efficacy_summary_file <- input$efficacy_summary
       
@@ -352,6 +379,22 @@ server <- function(input, output) {
                 paste(tissue_std_pk_file$datapath, ext, sep = "."))
     tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
     tissue_std_pk_function(tissue_std_pk_df)
+    })
+    
+# Render data table with clean in vitro data
+    output$clean_invitro_table <- DT::renderDataTable({
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath, 
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_function(invitro_df)
     })
   
 # Render data table with cleaned efficacy summary data
@@ -434,6 +477,23 @@ server <- function(input, output) {
     tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
     tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
     vis_dat(tissue_std_pk_clean)
+    }) 
+    
+# Render plot with summary of clean in vitro data
+    output$summary_invitro_plot <- renderPlot({
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath, 
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      invitro_clean <- in_vitro_function(invitro_df)
+      vis_dat(invitro_clean)
     }) 
     
 # Render plot with summary of efficacy summary data
