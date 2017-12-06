@@ -43,11 +43,8 @@ tissue_laser_summary <- function(tissue_laser_clean){
 #SLE and SLU variable names in the tidy data templates and recoded as numerical values.
 
 tissue_std_pk_function <- function(tissue_std_pk_df){
-  n <- nrow(tissue_std_pk_df)
-  mice_ids <- rep(c(1:(n/2)), each = 2)
-  
   tissue_std_pk_clean <- tissue_std_pk_df %>% 
-    mutate(mouse_number = mice_ids) %>%
+    mutate(mouse_number = MouseID) %>%
     select(Compound, mouse_number, Group, Protocol_Animal, Dosing, Timepoint, Compartment, Parent) %>%
     rename(drug = Compound,
            `Parent [ng/ml]` = Parent) %>% 
