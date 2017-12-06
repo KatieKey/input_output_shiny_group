@@ -16,7 +16,7 @@ library(dplyr)
 efficacy_function <- function(efficacy_df){
   efficacy_clean <- efficacy_df %>% 
     select(Protocol_Animal, Compound, Group, Drug_Dose, Days_Treatment,
-           Treatment_Interval,Elung,Espleen) %>% 
+           Treatment_Interval, Dose_Frequency, Elung, Espleen) %>% 
     rename(lung_efficacy = Elung,
            spleen_efficacy = Espleen,
            dosage = Drug_Dose,
