@@ -19,3 +19,15 @@ tissue_laser_function <- function(tissue_laser_df) {
     mutate_at(c("ULU", "RIM", "OCS", "ICS"), as.numeric)
   return(tissue_laser_clean)
 }
+
+tissue_laser_summary <- function(tissue_laser_clean){
+  tissue_laser_summarized <- tissue_laser_clean %>% 
+    group_by(Compound, Drug_Dose, Dose_Frequency, Timepoint) %>% 
+    summarize_at(c("ULU", "RIM", "OCS", "ICS"), .funs = mean, na.rm = TRUE) %>% 
+    ungroup() %>% 
+    rename(drug = Compound,
+           dosage = Drug_Dose, 
+           dose_int = Dose_Frequency,
+           level = Timepoint)
+  return(tissue_laser_summarized)
+}
