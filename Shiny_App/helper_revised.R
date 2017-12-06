@@ -23,10 +23,8 @@ efficacy_function <- function(efficacy_df){
            days_treatment = Days_Treatment,
            dose_interval = Treatment_Interval, 
            drug = Compound) %>%
-    mutate(lung_efficacy = as.numeric(lung_efficacy)) %>% 
-    mutate(spleen_efficacy = as.numeric(spleen_efficacy)) %>%
-    mutate(dose_interval = as.factor(dose_interval)) %>%
-    mutate(days_treatment = as.factor(days_treatment)) %>% 
+    mutate_at(c("lung_efficacy", "spleen_efficacy"), as.numeric) %>% 
+    mutate_at(c("dose_interval", "days_treatment"), as.factor) %>%
     group_by(Protocol_Animal, drug, Group, dosage, days_treatment, dose_interval) %>% 
     summarize(lung_efficacy_log = log10(lung_efficacy),
               spleen_efficacy_log = log10(spleen_efficacy))
