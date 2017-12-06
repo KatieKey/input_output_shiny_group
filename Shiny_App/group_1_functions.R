@@ -3,14 +3,6 @@
 # FUNCTIONS FOR CLEANING RAW DATA FILES
 
 #### efficacy_function cleans raw efficacy data in Shiny app
-# Function Title: Cleaning Efficacy Dataframe
-
-# This function uses the file input from the fileInput widget for "efficacy" as the argument. 
-# The dataframe explores lung and spleen efficacies by drug, days of treatment, and dosage. The function 
-# cleans the plasma dataframe by first removing columns that are repeating (i.e., units) and putting
-# the efficacy values into a log value for easier comprehension. Further, the dosage and days_treatment columns
-# were cleaned by changing the factor names in order to compare by dosage and include controls in this analysis.
-
 library(dplyr)
 
 efficacy_function <- function(efficacy_df){
@@ -51,11 +43,7 @@ efficacy_function <- function(efficacy_df){
 
 #### plasma_function cleans raw plasma data in Shiny app
 #Function Title: Cleaning Plasma Dataframe
-
-#This function has a dataframe as an argument. The dataframe contains data on plasma
-#concentrations. The function cleans the plasma dataframe by selecting only the needed
-#variables, renaming variables, and changing the group column to a character.
-
+#This function 
 plasma_function <- function(plasma_df){
   plasma_clean <- plasma_df %>%
     select(MouseID, 
@@ -96,15 +84,6 @@ tissue_laser_function <- function(tissue_laser_df) {
 
 
 ##### tissue_std_pk_function cleans raw tissue std pk data in Shiny app
-
-#Function Title: Clean STD PK Dataframe
-#The argument for this function contains information on pharmacokinetic properties of the 
-#drugs tested on a mouse-by-mouse level. A mouse id was created as a new column to the
-#dataset. Additionally, only the necessary columns were included in the dataframe. The spread
-#function was used to convert the Comparment column into columns for each compartment, 
-#containing the respective Parent values. These new columns were then renamed to match the 
-#SLE and SLU variable names in the tidy data templates and recoded as numerical values.
-
 tissue_std_pk_function <- function(tissue_std_pk_df){
   n <- nrow(tissue_std_pk_df)
   mice_ids <- rep(c(1:(n/2)), each = 2)
@@ -121,3 +100,15 @@ tissue_std_pk_function <- function(tissue_std_pk_df){
            SLE = as.numeric(SLE))
 return(tissue_std_pk_clean)
 } 
+
+
+
+###### in_vitro_function cleans raw in_vitro data in Shiny app
+in_vitro_function <- function(in_vitro_df){
+  in_vitro_clean <- in_vitro_df 
+  return(in_vitro_clean)
+} 
+
+
+
+
