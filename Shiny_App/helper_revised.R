@@ -43,8 +43,10 @@ efficacy_summary <- function(efficacy_clean){
     summarize_at(c("lung_efficacy_log", "spleen_efficacy_log"), mean, na.rm = TRUE) %>% 
     filter(!(drug %in% c("Baseline", "Untr"))) %>% 
     mutate(ELU = untreated$lung_efficacy_log - lung_efficacy_log,
-           ESP = untreated$spleen_efficacy_log - spleen_efficacy_log) %>% 
-    select(drug, dosage, dose_interval, ELU, ESP)
+           ESP = untreated$spleen_efficacy_log - spleen_efficacy_log,
+           dose_interval = as.character(dose_interval)) %>% 
+    select(drug, dosage, dose_interval, ELU, ESP) %>% 
+    rename(dose_int = dose_interval)
   
   return(efficacy_clean_summarized)
 }
@@ -81,7 +83,9 @@ plasma_summarize <- function(plasma_clean){
     filter(Dosing == "Steady_State") %>% 
     group_by(drug, dosage, dose_int, Timepoint) %>% 
     summarize(PLA = mean(plasma_concentration, na.rm = TRUE)) %>% 
-    rename(level = Timepoint)
+    rename(level = Timepoint) %>% 
+    mutate(level = ifelse(level == "CMax", "Cmax", level))
+  
   return(plasma_summarized)
 }
 
@@ -149,4 +153,28 @@ tissue_std_pk_summarize <- function(tissue_std_pk_clean){
            dose_int = Dose_Frequency,
            level = Timepoint)
   return(tissue_std_pk_summarized)
+}
+
+###### in_vitro_function cleans raw in_vitro data in Shiny app
+in_vitro_function <- function(in_vitro_df){
+  in_vitro_clean <- in_vitro_df %>% 
+    rename(drug = Drug)
+  return(in_vitro_clean)
+}
+
+###### create summary dataframe
+create_summary_df <- function(efficacy_clean_summarized, 
+                              plasma_summarized,
+                              tissue_laser_summarized,
+                              tissue_std_pk_summarized,
+                              in_vitro_clean){
+  summary_df <- plasma_summarized %>% 
+    full_join(tissue_laser_summarized, by = c("drug", "dosage", "dose_int", "level")) %>% 
+    full_join(tissue_std_pk_summarized, by = c("drug", "dosage", "dose_int", "level")) %>%
+    ungroup() %>% 
+    mutate(dosage = as.character(dosage)) %>% 
+    full_join(efficacy_clean_summarized, by = c("drug", "dosage", "dose_int")) %>% 
+    left_join(in_vitro_clean, by = "drug") 
+  
+  return(summary_df)
 }
