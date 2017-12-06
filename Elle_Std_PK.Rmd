@@ -5,7 +5,7 @@ date: "November 8, 2017"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 library(tidyverse)
 library(stringr)
 library(readxl)
