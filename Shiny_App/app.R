@@ -18,15 +18,6 @@ library(rpart)
 library(ggbeeswarm)
 library(plotly)
 library(colourpicker)
-library(rpart.plot)
-library(party)
-library(randomForest)
-library(tibble)
-library(glmnet)
-library(knitr)
-library(broom)
-library(ggfortify)
-library(stats)
 
 source("helper_revised.R")
 source("Group2Functions.R")
@@ -201,7 +192,7 @@ ui <- fluidPage(
                   
                   tabPanel("Independent ~ Dependent", 
                            tabsetPanel(type = "tabs",
-                                       tabPanel("Regression Trees",
+                                       tabPanel("RegressionTree",
                                                 radioButtons("regression", label = "Pick a Variable",
                                                              choices = list("Lung Efficacy" = ELU,
                                                                          "Spleen Efficacy" = ESP)
@@ -210,26 +201,16 @@ ui <- fluidPage(
                                                 numericInput("min_bucket", label = h3("Minimum Buckets for Regression Tree"), value = 1, min = 0),
                                                 plotOutput("regression_tree")
                                                 ),
-                                       tabPanel("Best Variables",
-                                                radioButtons("variable", label = "Pick a Variable",
-                                                             choices = list("Lung Efficacy" = ELU,
-                                                                            "Spleen Efficacy" = ESP)),
-                                                plotlyOutput("best_variables")),
+                                       tabPanel("Drews"),
                                        tabPanel("KateScatter"),
                                        tabPanel("KateCoefficient"),
-                                       tabPanel("LASSO Model",
-                                                radioButtons("variable_lasso", label = "Pick a Variable",
-                                                             choices = list("Lung Efficacy" = ELU,
-                                                                            "Spleen Efficacy" = ESP)),
-                                                radioButtons("dosage", label = "Pick a Dosage", 
-                                                             choices = list("50" = fifty,
-                                                                            "100" = hundred))),
-                                                verbatimTextOutput("lasso_model"))
+                                       tabPanel("Maggie")
                            )
                   )
                   )
                   )
       )
+    )
 
 
 
@@ -238,11 +219,10 @@ server <- function(input, output) {
   
 ###### CODE FOR RENDERING RAW DATA
   
-# Render data table with raw efficacy data
-  output$raw_efficacy_table <- DT::renderDataTable({
+  # Reactive with raw, clean, and summarized efficacy data
+  raw_efficacy <- reactive({
     efficacy_file <- input$efficacy
-    
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
+
     if(is.null(efficacy_file)){
       return(NULL)
     }
@@ -250,7 +230,17 @@ server <- function(input, output) {
     ext <- tools::file_ext(efficacy_file$name)
     file.rename(efficacy_file$datapath, 
                 paste(efficacy_file$datapath, ext, sep = "."))
-    read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+    raw_efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+    return(raw_efficacy_df)
+  })
+  
+  clean_efficacy <- reactive({
+    efficacy_function(raw_efficacy())
+  })
+  
+# Render data table with raw efficacy data
+  output$raw_efficacy_table <- DT::renderDataTable({
+    raw_efficacy()
   })
   
 # Render data table with raw plasma data
@@ -338,18 +328,7 @@ server <- function(input, output) {
   
 # Render data table with clean efficacy data
     output$clean_efficacy_table <- DT::renderDataTable({
-    efficacy_file <- input$efficacy
-    
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(efficacy_file)){
-      return(NULL)
-    }
-    
-    ext <- tools::file_ext(efficacy_file$name)
-    file.rename(efficacy_file$datapath, 
-                paste(efficacy_file$datapath, ext, sep = "."))
-    efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
-    efficacy_function(efficacy_df)
+      clean_efficacy()
     })
   
 # Render data table with clean plasma data
@@ -494,19 +473,7 @@ server <- function(input, output) {
   
 # Render plot with summary of clean efficacy data
       output$summary_efficacy_plot <- renderPlot({
-      efficacy_file <- input$efficacy
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(efficacy_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(efficacy_file$name)
-      file.rename(efficacy_file$datapath, 
-                  paste(efficacy_file$datapath, ext, sep = "."))
-      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
-      efficacy_clean <- efficacy_function(efficacy_df)
-      vis_dat(efficacy_clean)
+        vis_dat(clean_efficacy())
      }) 
   
 # Render plot with summary of clean plasma data  
@@ -690,192 +657,31 @@ server <- function(input, output) {
     ##regression tree
     
     output$regression_tree <- renderPlot({
+      
+      efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
+                                        "master/CSV_Files/efficacy_summary.csv")
+      efficacy_summary_file <- read_csv(efficacy_summary_file_1)
 
       if(is.null(efficacy_summary_file)){
         return(NULL)
       }
       
-      if (input$regression == "ELU") {
-        
         function_data <- efficacy_summary_file %>%
-          filter(!is.na(ELU)) %>% 
-          rename(plasma = PLA, `Uninvolved lung` = ULU,
-                 `Rim (of Lesion)` = RIM, `Outer Caseum` = OCS, `Inner Caseum` = ICS,
-                 `Standard Lung` = SLU, `Standard Lesion` = SLE, `Human Plasma Binding` = huPPB,
-                 `Mouse Plasma Binding` = muPPB, `MIC Erdman Strain` = MIC_Erdman,
-                 `MIC Erdman Strain with Serum` = MICserumErd, `MIC rv strain` = MIC_Rv,
-                 `Caseum binding` = Caseum_binding, `Macrophage Uptake (Ratio)` = MacUptake)
+          filter(!is.na(input$regression))
         
-        tree <- rpart(ELU ~  drug + dosage + level + 
-                        plasma + `Uninvolved lung` + `Rim (of Lesion)` + `Outer Caseum` + 
-                        `Inner Caseum` + `Standard Lung` + `Standard Lesion` + 
-                        cLogP + `Human Plasma Binding` + `Mouse Plasma Binding` + 
-                        `MIC Erdman Strain` + `MIC Erdman Strain with Serum` + `MIC rv strain` + 
-                        `Caseum binding` + `Macrophage Uptake (Ratio)`,
+        tree <- rpart(input$regression ~  drug + dosage + level + 
+                        PLA + ULU + RIM + OCS + ICS + SLU + SLE + 
+                        cLogP + huPPB + muPPB + MIC_Erdman + MICserumErd + MIC_Rv + 
+                        Caseum_binding + MacUptake,
                       data = function_data, 
                       control = rpart.control(cp = -1, minsplit = input$min_split, 
                                               minbucket = input$min_bucket))
-        return(rpart.plot(tree))
-      }
-      
-      if (input$regression == "ESP") {
-        
-        function_data <- efficacy_summary_file %>%
-          filter(!is.na(ESP)) %>% 
-          rename(plasma = PLA, `Uninvolved lung` = ULU,
-                 `Rim (of Lesion)` = RIM, `Outer Caseum` = OCS, `Inner Caseum` = ICS,
-                 `Standard Lung` = SLU, `Standard Lesion` = SLE, `Human Plasma Binding` = huPPB,
-                 `Mouse Plasma Binding` = muPPB, `MIC Erdman Strain` = MIC_Erdman,
-                 `MIC Erdman Strain with Serum` = MICserumErd, `MIC rv strain` = MIC_Rv,
-                 `Caseum binding` = Caseum_binding, `Macrophage Uptake (Ratio)` = MacUptake)
-        
-        tree <- rpart(ESP ~  drug + dosage + level + 
-                        plasma + `Uninvolved lung` + `Rim (of Lesion)` + `Outer Caseum` + 
-                        `Inner Caseum` + `Standard Lung` + `Standard Lesion` + 
-                        cLogP + `Human Plasma Binding` + `Mouse Plasma Binding` + 
-                        `MIC Erdman Strain` + `MIC Erdman Strain with Serum` + `MIC rv strain` + 
-                        `Caseum binding` + `Macrophage Uptake (Ratio)`,
-                      data = function_data, 
-                      control = rpart.control(cp = -1, minsplit = input$min_split, 
-                                              minbucket = input$min_bucket))
-        return(rpart.plot(tree))
-      }
-        
-}) 
-    
-    
-###### best variables output
-    
-    output$best_variables <- renderPlotly({
-    
-    if(input$variable == "ELU"){
-      dataset <- efficacy_summary_file %>% 
-        select(-ESP) %>% 
-        mutate(huPPB = as.numeric(huPPB), 
-               muPPB = as.numeric(muPPB), 
-               dosage = as.factor(dosage), 
-               dose_int = as.factor(dose_int), 
-               level = as.factor(level), 
-               drug = as.factor(drug))
-      
-      efficacy.rf <- randomForest( ELU~ ., data =dataset,
-                                   na.action = na.roughfix,
-                                   ntree= 1000, 
-                                   importance = TRUE)
-      graph <-importance(efficacy.rf, type = 1) %>% 
-        as.data.frame() %>% 
-        rownames_to_column() %>% 
-        rename(variable = rowname, 
-               mse = `%IncMSE`) 
-      
-      
-      graph <- graph %>% 
-        filter(mse > 0) %>% 
-        ggplot()+
-        geom_point(aes(x = mse, y = reorder(variable, mse)))+
-        theme_minimal()+
-        labs(y = "Variable", 
-             x = "Importance") +
-        ggtitle("Lung Efficacy")
-      return(ggplotly(graph))
-    }
-    
-    if (input$variable == "ESP"){
-      dataset <- efficacy_summary_file %>% 
-        select(-ELU) %>% 
-        mutate(huPPB = as.numeric(huPPB), 
-               muPPB = as.numeric(muPPB), 
-               dosage = as.factor(dosage), 
-               dose_int = as.factor(dose_int), 
-               level = as.factor(level), 
-               drug = as.factor(drug))
-      
-      efficacy.rf <- randomForest( ESP ~ ., data =dataset,
-                                   na.action = na.roughfix,
-                                   ntree= 1000, 
-                                   importance = TRUE)
-      
-      graph <-importance(efficacy.rf, type = 1) %>% 
-        as.data.frame() %>% 
-        rownames_to_column() %>% 
-        rename(variable = rowname, 
-               mse = `%IncMSE`) 
-      
-      
-      graph <- graph %>% 
-        filter(mse > 0) %>% 
-        ggplot()+
-        geom_point(aes(x = mse, y = reorder(variable, mse)))+
-        theme_minimal()+
-        labs(y = "Variable", 
-             x = "Importance") +
-        ggtitle("Spleen Efficacy")
-      return(ggplotly(graph))
-    }
-    
-    })
-    
-##LASSO Model Output
-    
-    output$lasso_model <- renderPrint({
-    
-    if (input$dosage == "50"){
-    data <- na.omit(efficacy_summary_file) %>% 
-      select_if(is.numeric) %>%
-      filter(dosage == 50)
-    
-    response <- efficacy_summary_file %>% 
-      select(input$variable)
-    
-    predictors <- efficacy_summary_file %>%
-      select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
-               "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
-    
-    y <- as.numeric(unlist(response))
-    x <- as.matrix(predictors)
-    
-    fit =  glmnet(x, y)
-    #issues with this part of the code
-    
-    coeff <- coef(fit,s=0.1)
-    coeff <- as.data.frame(as.matrix(coeff))
-    
-    coeff <- coeff %>% 
-      filter(coeff > 0)
-    return(kable(coeff))
-    }
-      
-      if (input$dosage == "100"){
-        data <- na.omit(efficacy_summary_file) %>% 
-          select_if(is.numeric) %>%
-          filter(dosage == 100)
-        
-        response <- efficacy_summary_file %>% 
-          select(input$variable_lasso)
-        
-        predictors <- efficacy_summary_file %>%
-          select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
-                   "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
-        
-        y <- as.numeric(unlist(response))
-        x <- as.matrix(predictors)
-        
-        fit = glmnet(x, y)
-        ##issues with this part of the code
-        
-        coeff <- coef(fit,s=0.1)
-        coeff <- as.data.frame(as.matrix(coeff))
-        
-        coeff <- coeff %>% 
-          filter(coeff > 0)
-        return(kable(coeff))
-      }
-      
-    })
-    
-       
-}
+        return(tree)
 
+        }) 
+    
+
+    }
 
 
 # Run the application 
