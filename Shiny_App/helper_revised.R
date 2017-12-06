@@ -33,6 +33,21 @@ efficacy_function <- function(efficacy_df){
   return(efficacy_clean)
 }
 
+efficacy_summary <- function(efficacy_clean){
+  untreated <- efficacy_clean %>% 
+    filter(drug == "Untr") %>% 
+    summarize_at(c("lung_efficacy_log", "spleen_efficacy_log"), mean)
+  
+  efficacy_clean_summarized <- efficacy_clean %>% 
+    group_by(drug, dosage, dose_interval) %>%
+    summarize_at(c("lung_efficacy_log", "spleen_efficacy_log"), mean, na.rm = TRUE) %>% 
+    filter(!(drug %in% c("Baseline", "Untr"))) %>% 
+    mutate(ELU = untreated$lung_efficacy_log - lung_efficacy_log,
+           ESP = untreated$spleen_efficacy_log - spleen_efficacy_log) %>% 
+    select(drug, dosage, dose_interval, ELU, ESP)
+  
+  return(efficacy_clean_summarized)
+}
 
 
 ##### Clean the tissue laser data into a tidy format
