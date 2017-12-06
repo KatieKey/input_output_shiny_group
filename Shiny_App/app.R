@@ -183,7 +183,7 @@ ui <- fluidPage(
                   
                   tabPanel("Independent ~ Dependent", 
                            tabsetPanel(type = "tabs",
-                                       tabPanel("Regression_Tree",
+                                       tabPanel("Regression Trees",
                                                 radioButtons("regression", label = "Pick a Variable",
                                                              choices = list("Lung Efficacy" = ELU,
                                                                          "Spleen Efficacy" = ESP)
