@@ -220,7 +220,7 @@ server <- function(input, output) {
 ###### CODE FOR RENDERING RAW DATA
   
   # Reactive with raw, clean, and summarized efficacy data
-  raw_efficacy <- reactive({
+  efficacy_df <- reactive({
     efficacy_file <- input$efficacy
 
     if(is.null(efficacy_file)){
@@ -234,77 +234,127 @@ server <- function(input, output) {
     return(raw_efficacy_df)
   })
   
-  clean_efficacy <- reactive({
-    efficacy_function(raw_efficacy())
+  efficacy_clean <- reactive({
+    
+    if(is.null(efficacy_df())){
+      return(NULL)
+    }
+    
+    efficacy_function(efficacy_df())
+  })
+  
+  plasma_df <- reactive({
+    plasma_file <- input$plasma
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(plasma_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(plasma_file$name)
+    file.rename(plasma_file$datapath, 
+                paste(plasma_file$datapath, ext, sep = "."))
+    raw_plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+    return(raw_plasma_df)
+  })
+  
+  plasma_clean <- reactive({
+    if(is.null(plasma_df())){
+      return(NULL)
+    }
+    
+    plasma_function(plasma_df())
+  })
+  
+  tissue_laser_df <- reactive({
+    tissue_laser_file <- input$tissue_laser
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(tissue_laser_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(tissue_laser_file$name)
+    file.rename(tissue_laser_file$datapath, 
+                paste(tissue_laser_file$datapath, ext, sep = "."))
+    return(read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1))
+  })
+  
+  tissue_laser_clean <- reactive({
+    if(is.null(tissue_laser_df())){
+      return(NULL)
+    }
+    
+    tissue_laser_function(tissue_laser_df())
+  })
+  
+  tissue_std_pk_df <- reactive({
+    tissue_std_pk_file <- input$tissue_std_pk
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(tissue_std_pk_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(tissue_std_pk_file$name)
+    file.rename(tissue_std_pk_file$datapath, 
+                paste(tissue_std_pk_file$datapath, ext, sep = "."))
+    read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+  })
+  
+  tissue_std_pk_clean <- reactive({
+    if(is.null(tissue_std_pk_df())){
+      return(NULL)
+    }
+    
+    tissue_std_pk_function(tissue_std_pk_df())
+  })
+  
+  in_vitro_df <- reactive({
+    invitro_file <- input$invitro
+    
+    # Make sure you don't show an error by trying to run code before a file's been uploaded
+    if(is.null(invitro_file)){
+      return(NULL)
+    }
+    
+    ext <- tools::file_ext(invitro_file$name)
+    file.rename(invitro_file$datapath, 
+                paste(invitro_file$datapath, ext, sep = "."))
+    read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+  })
+  
+  in_vitro_clean <- reactive({
+    if(is.null(in_vitro_df())){
+      return(NULL)
+    }
+    
+    in_vitro_function(in_vitro_df())
   })
   
 # Render data table with raw efficacy data
   output$raw_efficacy_table <- DT::renderDataTable({
-    raw_efficacy()
+    efficacy_df()
   })
   
 # Render data table with raw plasma data
     output$raw_plasma_table <- DT::renderDataTable({
-      plasma_file <- input$plasma
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(plasma_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(plasma_file$name)
-      file.rename(plasma_file$datapath, 
-                  paste(plasma_file$datapath, ext, sep = "."))
-      read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
-      
+      plasma_df()
     })
     
 # Render data table for raw tissue laser data
     output$raw_tissue_laser_table <- DT::renderDataTable({
-      tissue_laser_file <- input$tissue_laser
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(tissue_laser_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(tissue_laser_file$name)
-      file.rename(tissue_laser_file$datapath, 
-                  paste(tissue_laser_file$datapath, ext, sep = "."))
-      read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
-      
+      tissue_laser_df()
     })
     
 # Render data table for raw tissue std pk data
     output$raw_tissue_std_pk_table <- DT::renderDataTable({
-      tissue_std_pk_file <- input$tissue_std_pk
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(tissue_std_pk_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(tissue_std_pk_file$name)
-      file.rename(tissue_std_pk_file$datapath, 
-                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
-      read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
-      
+      tissue_std_pk_df()
     })
     
 # Render data table for raw in vitro data
     output$raw_invitro_table <- DT::renderDataTable({
-      invitro_file <- input$invitro
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(invitro_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(invitro_file$name)
-      file.rename(invitro_file$datapath, 
-                  paste(invitro_file$datapath, ext, sep = "."))
-      read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
-      
+      in_vitro_df()
     })
     
 # render raw efficacy summary table    
@@ -328,71 +378,27 @@ server <- function(input, output) {
   
 # Render data table with clean efficacy data
     output$clean_efficacy_table <- DT::renderDataTable({
-      clean_efficacy()
+      efficacy_clean()
     })
   
 # Render data table with clean plasma data
     output$clean_plasma_table <- DT::renderDataTable({
-    plasma_file <- input$plasma
-    
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(plasma_file)){
-      return(NULL)
-    }
-    
-    ext <- tools::file_ext(plasma_file$name)
-    file.rename(plasma_file$datapath, 
-                paste(plasma_file$datapath, ext, sep = "."))
-    plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
-    plasma_function(plasma_df)
+      plasma_clean()
     }) 
 
 # Render data table with clean tissue laser data
     output$clean_tissue_laser_table <- DT::renderDataTable({
-    tissue_laser_file <- input$tissue_laser
-    
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(tissue_laser_file)){
-      return(NULL)
-    }
-    
-    ext <- tools::file_ext(tissue_laser_file$name)
-    file.rename(tissue_laser_file$datapath, 
-                paste(tissue_laser_file$datapath, ext, sep = "."))
-    tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
-    tissue_laser_function(tissue_laser_df)
+      tissue_laser_clean()
     })
   
 # Render data table with clean tissue std pk data
     output$clean_tissue_std_pk_table <- DT::renderDataTable({
-    tissue_std_pk_file <- input$tissue_std_pk
-    
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(tissue_std_pk_file)){
-      return(NULL)
-    }
-    
-    ext <- tools::file_ext(tissue_std_pk_file$name)
-    file.rename(tissue_std_pk_file$datapath, 
-                paste(tissue_std_pk_file$datapath, ext, sep = "."))
-    tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
-    tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_clean()
     })
     
 # Render data table with clean in vitro data
     output$clean_invitro_table <- DT::renderDataTable({
-      invitro_file <- input$invitro
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(invitro_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(invitro_file$name)
-      file.rename(invitro_file$datapath, 
-                  paste(invitro_file$datapath, ext, sep = "."))
-      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
-      in_vitro_function(invitro_df)
+      in_vitro_clean()
     })
     
 # Render data table with cleaned efficacy summary data
@@ -473,24 +479,12 @@ server <- function(input, output) {
   
 # Render plot with summary of clean efficacy data
       output$summary_efficacy_plot <- renderPlot({
-        vis_dat(clean_efficacy())
+        vis_dat(efficacy_clean())
      }) 
   
 # Render plot with summary of clean plasma data  
     output$summary_plasma_plot <- renderPlot({
-    plasma_file <- input$plasma
-    
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    if(is.null(plasma_file)){
-      return(NULL)
-    }
-    
-    ext <- tools::file_ext(plasma_file$name)
-    file.rename(plasma_file$datapath, 
-                paste(plasma_file$datapath, ext, sep = "."))
-    plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
-    plasma_clean <- plasma_function(plasma_df)
-    vis_dat(plasma_clean)
+      vis_dat(plasma_clean())
     }) 
 
   
