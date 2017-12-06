@@ -51,7 +51,6 @@ tissue_std_pk_function <- function(tissue_std_pk_df){
     spread(key = Compartment, value = `Parent [ng/ml]`) %>% 
     rename(SLU = Lung, 
            SLE = Lesion) %>% 
-    mutate(SLU = as.numeric(SLU),
-           SLE = as.numeric(SLE))
+    mutate_at(c("SLU", "SLE"), as.numeric)
   return(tissue_std_pk_clean)
 } 
