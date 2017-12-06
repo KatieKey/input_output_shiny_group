@@ -11,10 +11,7 @@ tissue_laser_function <- function(tissue_laser_df) {
     select(MouseID, Compound, Drug_Dose, Dose_Frequency, Group, Protocol_Animal,
            Dosing, Timepoint, Timepoint_Hours, Compartment, `Parent [ng/ml]`)
   
-  n <- nrow(tissue_laser_clean)
-  mice_ids <- rep(c(1:(n/4)), each = 4)
-  
-  tissue_laser_clean <- mutate(tissue_laser_clean, MouseID = mice_ids) %>%
+  tissue_laser_clean <- tissue_laser_clean %>%
     spread(key = Compartment, value = `Parent [ng/ml]`) %>%
     rename(ULU = `uninvolved lung`, RIM = rim,
            OCS = `outer caseum`, ICS = `inner caseum`) %>%
