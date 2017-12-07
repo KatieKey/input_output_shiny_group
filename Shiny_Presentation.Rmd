@@ -69,8 +69,7 @@ provided at the beginning of the project.
 
 - 
 
-```{r, echo=FALSE, warning=FALSE,message=FALSE, fig.height=4, fig.width=8}
-
+```{r, echo=TRUE, warning=FALSE,message=FALSE, eval = FALSE}
 
 ```
 
