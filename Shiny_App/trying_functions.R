@@ -81,11 +81,11 @@ library(stats)
     
     coef_plot
     
-    variable_definitions <- paste0("https://raw.githubusercontent.com/dfat5/erhs_535_group3/",
-                                   "master/data/variable_definitions.csv")
+    variable_definitions <- paste0("https://raw.githubusercontent.com/KatieKey/",
+                                   "input_output_shiny_group/master/Shiny_App/variable_definitions.csv")
     variable_definitions <- read_csv(variable_definitions)
-    kable(variable_definitions)
-    View(variable_definitions) 
+    View(variable_definitions)
 
-    
+
+
   

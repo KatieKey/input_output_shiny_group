@@ -1174,7 +1174,7 @@ server <- function(input, output) {
                                                  in_vitro_clean)
       
       variable_definitions <- paste0("https://raw.githubusercontent.com/KatieKey/",
-                                     "input_output_shiny_group/master/variable_definitions.csv")
+                                     "input_output_shiny_group/master/Shiny_App/variable_definitions.csv")
       variable_definitions <- read_csv(variable_definitions)
       
     if(input$variable == "ELU"){
