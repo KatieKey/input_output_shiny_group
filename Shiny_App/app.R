@@ -219,8 +219,10 @@ ui <- fluidPage(
                                                              choices = list("Lung Efficacy" = ELU,
                                                                          "Spleen Efficacy" = ESP)
                                                              ),
-                                                numericInput("min_split", label = h3("Minimum Split for Regression Tree"), value = 1, min = 0),
-                                                numericInput("min_bucket", label = h3("Minimum Buckets for Regression Tree"), value = 1, min = 0),
+                                                numericInput("min_split", label = h3("Minimum Split for Regression Tree"), 
+                                                             value = 1, min = 0),
+                                                numericInput("min_bucket", label = h3("Minimum Buckets for Regression Tree"), 
+                                                             value = 1, min = 0),
                                                 plotOutput("regression_tree")
                                                 ),
                                        tabPanel("Best Variables",
@@ -1055,7 +1057,6 @@ server <- function(input, output) {
                                                  tissue_laser_summarized,
                                                  tissue_std_pk_summarized,
                                                  in_vitro_clean)
-      efficacy_summary_file
 
       if(is.null(efficacy_summary_file)){
         return(NULL)
@@ -1210,7 +1211,7 @@ server <- function(input, output) {
                                     'Definition: ', Definition
                        )))+
         theme_minimal()+
-        ggtitle("Predicing Variable Importance Using Lung Efficacy")+
+        ggtitle("Predicting Variable Importance Using Lung Efficacy")+
         labs(y = "Variable", 
              x = "Importance", 
              color = " " )
@@ -1256,7 +1257,7 @@ server <- function(input, output) {
                                     'Definition: ', Definition
                        )))+
         theme_minimal()+
-        ggtitle("Predicing Variable Importance Using Spleen Efficacy")+
+        ggtitle("Predicting Variable Importance Using Spleen Efficacy")+
         labs(y = "Variable", 
              x = "Importance", 
              color = " " )
@@ -1421,9 +1422,9 @@ server <- function(input, output) {
           function_data_ELU <- function_data_ELU %>% 
           dplyr::select(drug, dosage, dose_int, level, ELU, indep_measure, independent_var) 
         
-          #model_function_ELU <- function(function_data_ELU) {
-           # model_results <- lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure))
-          #}
+          model_function_ELU <- function(function_data_ELU) {
+           model_results <- lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure))
+          }
         
         estimate_results_ELU <- function_data_ELU %>% 
           group_by(independent_var, dose_int) %>% 

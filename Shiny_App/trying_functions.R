@@ -86,7 +86,6 @@ library(stats)
     variable_definitions <- read_csv(variable_definitions)
     kable(variable_definitions)
     View(variable_definitions) 
-    
-
+  
     
   
