@@ -1173,8 +1173,8 @@ server <- function(input, output) {
                                                  tissue_std_pk_summarized,
                                                  in_vitro_clean)
       
-      variable_definitions <- paste0("https://raw.githubusercontent.com/dfat5/erhs_535_group3/",
-                                     "master/data/variable_definitions.csv")
+      variable_definitions <- paste0("https://raw.githubusercontent.com/KatieKey/",
+                                     "input_output_shiny_group/master/variable_definitions.csv")
       variable_definitions <- read_csv(variable_definitions)
       
     if(input$variable == "ELU"){
