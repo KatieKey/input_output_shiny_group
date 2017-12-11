@@ -33,6 +33,7 @@ library(gghighlight)
 library(dendextend)
 library(ggdendro)
 library(pander)
+library(purrr)
 
 source("helper_revised.R")
 source("Group2Functions.R")
@@ -1173,8 +1174,8 @@ server <- function(input, output) {
                                                  tissue_std_pk_summarized,
                                                  in_vitro_clean)
       
-      variable_definitions <- paste0("https://raw.githubusercontent.com/KatieKey/",
-                                     "input_output_shiny_group/master/Shiny_App/variable_definitions.csv")
+      variable_definitions <- paste0("https://raw.githubusercontent.com/dfat5/",
+                                     "erhs_535_group3/master/data/variable_definitions.csv")
       variable_definitions <- read_csv(variable_definitions)
       
     if(input$variable == "ELU"){
@@ -1267,6 +1268,8 @@ server <- function(input, output) {
     }
     
     })
+    
+    
     
 ####Scatter Plot Output
     
@@ -1422,14 +1425,14 @@ server <- function(input, output) {
           function_data_ELU <- function_data_ELU %>% 
           dplyr::select(drug, dosage, dose_int, level, ELU, indep_measure, independent_var) 
         
-          model_function_ELU <- function(function_data_ELU) {
-           model_results <- lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure))
+          model_function_ELU <- function() {
+             lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure))
           }
         
         estimate_results_ELU <- function_data_ELU %>% 
           group_by(independent_var, dose_int) %>% 
           nest() %>% 
-          mutate(mod_results = purrr::map(data, lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure)))) %>% 
+          mutate(mod_results = purrr::map(data, model_function_ELU())) %>% 
           mutate(mod_coefs = purrr::map(mod_results, broom::tidy)) %>% 
           select(independent_var, dose_int, mod_results, mod_coefs) %>% 
           unnest(mod_coefs) %>% 
@@ -1457,8 +1460,8 @@ server <- function(input, output) {
           function_data_ESP <- function_data_ESP %>% 
           dplyr::select(drug, dosage, dose_int, level, ESP, indep_measure, independent_var)
           
-          model_function_ESP <- function(function_data_ESP) {
-            model_results <- lm(function_data_ESP$ESP ~ scale(function_data_ESP$indep_measure))
+          model_function_ESP <- function() {
+            lm(function_data_ESP$ESP ~ scale(function_data_ESP$indep_measure))
           }
         
         estimate_results_ESP <- function_data_ESP %>% 
@@ -1552,38 +1555,40 @@ server <- function(input, output) {
                                                  in_vitro_clean)
       
     if (input$lasso_dosage == "50"){
-    dataz <- na.omit(efficacy_summary_file) %>% 
-      dplyr::mutate(as.numeric(as.integer(dosage))) %>% 
-      dplyr::select_if(is.numeric) %>%
-      dplyr::filter(efficacy_summary_file$dosage == 50)
-    
-    response <- dataz %>% 
-      dplyr::select(input$variable_lasso)
-    
-    predictors <- dataz %>%
-      dplyr::select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
-               "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
-    
-    y <- as.numeric(unlist(response))
-    x <- as.matrix(predictors)
-    
-    fit =  glmnet(x, y)
-    
-    coeff_50 <- coef(fit,s=0.1)
-    coeff_50 <- as.data.frame(as.matrix(coeff_50)) %>% 
-      rownames_to_column() 
-    colnames(coeff_50) <- c("predictor", "coeff")
-    
-    coeff_50 <- coeff_50 %>% 
-      dplyr::filter(coeff_50 > 0)
-    return(coeff_50)
+      dataz_1 <- efficacy_summary_file %>% 
+        na.omit(efficacy_summary_file) %>% 
+        dplyr::mutate(dosage = as.numeric(as.integer(dosage))) %>% 
+        dplyr::select_if(is.numeric) %>%
+        filter(dosage == 50)
+      
+      response_1 <- dataz_1 %>% 
+        dplyr::select(input$variable_lasso)
+      
+      predictors_1 <- dataz_1 %>%
+        dplyr::select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
+                        "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
+      
+      y <- as.numeric(unlist(response_1))
+      x <- as.matrix(predictors_1)
+      
+      fit =  glmnet(x, y)
+      
+      coeff <- coef(fit,s=0.1)
+      coeff <- as.data.frame(as.matrix(coeff)) %>% 
+        rownames_to_column() 
+      colnames(coeff) <- c("predictor", "coeff")
+      
+      coeff <- coeff %>% 
+        dplyr::filter(coeff > 0)
+      return(coeff)
     }
       
       if (input$lasso_dosage == "100"){
-        dataz_2 <- na.omit(efficacy_summary_file) %>% 
-          dplyr::mutate(as.numeric(as.integer(dosage))) %>% 
+        dataz_2 <- efficacy_summary_file %>% 
+          na.omit(efficacy_summary_file) %>% 
+          dplyr::mutate(dosage = as.numeric(as.integer(dosage))) %>% 
           dplyr::select_if(is.numeric) %>%
-          dplyr::filter(efficacy_summary_file$dosage == 100)
+          filter(dosage == 100)
         
         response_2 <- dataz_2 %>% 
           dplyr::select(input$variable_lasso)
