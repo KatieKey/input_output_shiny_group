@@ -32,6 +32,7 @@ library(tidyverse)
 library(gghighlight)
 library(dendextend)
 library(ggdendro)
+library(pander)
 
 source("helper_revised.R")
 source("Group2Functions.R")
@@ -226,7 +227,8 @@ ui <- fluidPage(
                                                 radioButtons("variable", label = "Pick a Variable",
                                                              choices = list("Lung Efficacy" = ELU,
                                                                             "Spleen Efficacy" = ESP)),
-                                                plotlyOutput("best_variables")),
+                                                plotlyOutput("best_variables")
+                                                ),
                                        tabPanel("Scatter Plot",
                                                 radioButtons("scatter_variable", label = "Pick a Variable",
                                                              choices = list("Lung Efficacy" = ELU,
@@ -1170,9 +1172,10 @@ server <- function(input, output) {
                                                  tissue_std_pk_summarized,
                                                  in_vitro_clean)
       
-      variable_definitions <- paste0("https://github.com/dfat5/erhs_535_group3/blob/,
-                                    master/data/variable_definitions.csv")
-
+      variable_definitions <- paste0("https://raw.githubusercontent.com/dfat5/erhs_535_group3/",
+                                     "master/data/variable_definitions.csv")
+      variable_definitions <- read_csv(variable_definitions)
+      
     if(input$variable == "ELU"){
       dataset <- efficacy_summary_file %>% 
         select(-ESP) %>% 
