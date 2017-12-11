@@ -245,7 +245,7 @@ ui <- fluidPage(
                                                 radioButtons("linear_level", label = "Pick a Level",
                                                              choices = list("Cmax" = Cmax,
                                                                             "Trough" = Trough)),
-                                                DT::dataTableOutput("linear_model")
+                                                plotOutput("linear_model")
                                                 ),
                                        tabPanel("LASSO Model",
                                                 radioButtons("variable_lasso", label = "Pick a Variable",
@@ -254,7 +254,7 @@ ui <- fluidPage(
                                                 radioButtons("lasso_dosage", label = "Pick a Dosage", 
                                                              choices = list("50" = fifty,
                                                                             "100" = hundred)),
-                                                dataTableOutput("lasso_model")))
+                                                DT::dataTableOutput("lasso_model")))
                            )
                   )
                   )
@@ -1415,20 +1415,20 @@ server <- function(input, output) {
       if(input$linear_variable == "ELU") {
         
         function_data_ELU <- efficacy_summary_file %>% 
-          filter(level == input$linear_level) %>% 
+          dplyr::filter(level == input$linear_level) %>% 
           gather(key = independent_var, value = indep_measure, -drug, -dosage, -dose_int, -level, -ELU, -ESP, na.rm = TRUE)
           
           function_data_ELU <- function_data_ELU %>% 
-          select(drug, dosage, dose_int, level, ELU, indep_measure, independent_var) 
+          dplyr::select(drug, dosage, dose_int, level, ELU, indep_measure, independent_var) 
         
-          model_function_ELU <- function(efficacy_summary_file) {
-            model_results <- lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure))
-          }
+          #model_function_ELU <- function(function_data_ELU) {
+           # model_results <- lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure))
+          #}
         
         estimate_results_ELU <- function_data_ELU %>% 
           group_by(independent_var, dose_int) %>% 
           nest() %>% 
-          mutate(mod_results = purrr::map(data, model_function_ELU())) %>% 
+          mutate(mod_results = purrr::map(data, lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure)))) %>% 
           mutate(mod_coefs = purrr::map(mod_results, broom::tidy)) %>% 
           select(independent_var, dose_int, mod_results, mod_coefs) %>% 
           unnest(mod_coefs) %>% 
@@ -1449,14 +1449,14 @@ server <- function(input, output) {
       
       if(input$linear_variable == "ESP") {
         
-        function_data_ESP <- efficacy_summary_file %>% 
-          filter(level == input$linear_level) %>% 
+        function_data_ESP <- efficacy_summary_file %>%
+          dplyr::filter(level == input$linear_level) %>% 
           gather(key = independent_var, value = indep_measure, -drug, -dosage, -dose_int, -level, -ELU, -ESP, na.rm = TRUE)
           
           function_data_ESP <- function_data_ESP %>% 
-          select(drug, dosage, dose_int, level, ESP, indep_measure, independent_var)
+          dplyr::select(drug, dosage, dose_int, level, ESP, indep_measure, independent_var)
           
-          model_function_ESP <- function(efficacy_summary_file) {
+          model_function_ESP <- function(function_data_ESP) {
             model_results <- lm(function_data_ESP$ESP ~ scale(function_data_ESP$indep_measure))
           }
         

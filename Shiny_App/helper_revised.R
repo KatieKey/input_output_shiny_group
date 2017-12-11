@@ -8,8 +8,7 @@ library(dplyr)
 # This function uses the file input from the fileInput widget for "efficacy" as the argument. 
 # The dataframe explores lung and spleen efficacies by drug, days of treatment, and dosage. The function 
 # cleans the plasma dataframe by first removing columns that are repeating (i.e., units) and putting
-# the efficacy values into a log value for easier comprehension. Further, the dosage and days_treatment columns
-# were cleaned by changing the factor names in order to compare by dosage and include controls in this analysis.
+# the efficacy values into a log value for easier comprehension.
 
 library(dplyr)
 
