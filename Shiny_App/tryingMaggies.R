@@ -22,29 +22,62 @@ library(broom)
 library(ggfortify)
 library(stats)
 
-data <- na.omit(efficacy_summary_file) %>% 
-  select_if(is.numeric) %>%
-  filter(dosage == 100)
 
-response <- efficacy_summary_file %>% 
-  select(ESP)
-
-predictors <- efficacy_summary_file %>%
-  select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
-           "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
-
-y <- as.numeric(unlist(response))
-x <- as.matrix(predictors)
-
-fit <-  glmnet(x, y)
-
-#for ELU Error in if (nulldev == 0) stop("y is constant; gaussian glmnet fails at standardization step") : 
-# missing value where TRUE/FALSE needed
-
-coeff <- coef(fit,s=0.1)
-coeff <- as.data.frame(as.matrix(coeff))
-
-coeff <- coeff %>% 
-  filter(coeff > 0)
-return(kable(coeff))
-
+  dataz <- na.omit(efficacy_summary_file) %>% 
+    dplyr::mutate(as.numeric(dosage)) %>% 
+    dplyr::select_if(is.numeric) %>%
+    dplyr::filter(dosage == 50)
+  
+  response <- dataz %>% 
+    dplyr::select("ELU")
+  
+  predictors <- dataz %>%
+    dplyr::select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
+                    "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
+  
+  y <- as.numeric(unlist(response))
+  x <- as.matrix(predictors)
+  
+  fit =  glmnet(x, y)
+  
+  coeff <- coef(fit,s=0.1)
+  coeff <- as.data.frame(as.matrix(coeff)) %>% 
+    rownames_to_column() 
+  colnames(coeff) <- c("predictor", "coeff")
+  
+  coeff <- coeff %>% 
+    dplyr::filter(coeff > 0)
+  kable(coeff)
+  
+  class(coeff)
+  
+ ########## 
+  
+  function_data_ELU <- efficacy_summary_file %>% 
+    filter(level == "Cmax") %>% 
+    gather(key = independent_var, value = indep_measure, -drug, -dosage, -dose_int, -level, -ELU, -ESP, na.rm = TRUE) 
+    
+    function_data_ELU <- function_data_ELU %>% 
+    select(drug, dosage, dose_int, level, ELU, indep_measure, independent_var) 
+    
+    estimate_results <- function_data_ELU %>% 
+      group_by(independent_var, dose_int) %>% 
+      nest() %>% 
+      dplyr::mutate_if(mod_results = purrr::map(data, lm(ELU ~ scale(function_data_ELU$indep_measure)))) %>% 
+      mutate(mod_coefs = purrr::map(mod_results, broom::tidy)) %>% 
+      select_if(independent_var, dose_int, mod_results, mod_coefs) %>% 
+      unnest(mod_coefs) %>% 
+      filter(term == "scale(indep_measure)")
+    
+    coef_plot <- estimate_results %>%
+      mutate(independent_var = forcats::fct_reorder(independent_var, estimate, fun = max)) %>%
+      rename(Dose_Interval = dose_int) %>% 
+      ggplot(aes(x = estimate, y = independent_var, color = Dose_Interval)) +
+      geom_point(aes(size = 1 / std.error)) +
+      scale_size_continuous(guide = FALSE) +
+      theme_few() + 
+      ggtitle(label = "Linear model coefficients as function of independent variables, \n by drug dose and model uncertainty", subtitle = "smaller points have more uncertainty than larger points") +
+      geom_vline(xintercept = 0, color = "cornflower blue") 
+    
+    coef_plot
+  

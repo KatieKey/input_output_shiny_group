@@ -32,5 +32,8 @@ SLU <- "SLU"
 SLE <- "SLE"
 PLA <- "PLA"
 
+by_test <- "by_test"
+by_drug <- "by_drug"
+
 
 

@@ -13,7 +13,7 @@ library(shiny)
 library(DT) 
 library(visdat)
 library(ggplot2)
-library(ggthemes)
+library(ggthemes) 
 library(rpart)
 library(ggbeeswarm)
 library(plotly)
@@ -27,6 +27,11 @@ library(knitr)
 library(broom)
 library(ggfortify)
 library(stats)
+library(kableExtra)
+library(tidyverse)
+library(gghighlight)
+library(dendextend)
+library(ggdendro)
 
 source("helper_revised.R")
 source("Group2Functions.R")
@@ -93,7 +98,6 @@ ui <- fluidPage(
                                                 DT::dataTableOutput("clean_invitro_table")
                                                 ),
                                        tabPanel("Efficacy Summary",
-                                                helpText("Used for In Vitro & In Vivo Plots in 'Independent' Tab"),
                                                 DT::dataTableOutput("clean_efficacy_summary_table")
                                                )
                                            )
@@ -194,8 +198,16 @@ ui <- fluidPage(
                                                 ),
                                                 plotlyOutput("beeswarm_invivo_plot", width = "auto", height = "auto")
                                                 ),
-                                       tabPanel("Plot2"),
-                                       tabPanel("Plot3")
+                                       tabPanel("Dendrogram",
+                                                helpText("Help Text: human_plasma = human binding plasma &
+                                                         mouse_plasma = mouse binding plasma"),
+                                                radioButtons("dendrogram_radio", label = "View Data By:",
+                                                             choices = list("Test" = by_test,
+                                                                            "Drug" = by_drug)),
+                                                plotOutput("dendrogram", width = "140%")
+                                                ),
+                                       tabPanel("Plot3"),
+                                      tabPanel("Plot4")
                                 )
                                 ),
                   
@@ -215,16 +227,32 @@ ui <- fluidPage(
                                                              choices = list("Lung Efficacy" = ELU,
                                                                             "Spleen Efficacy" = ESP)),
                                                 plotlyOutput("best_variables")),
-                                       tabPanel("KateScatter"),
-                                       tabPanel("KateCoefficient"),
+                                       tabPanel("Scatter Plot",
+                                                radioButtons("scatter_variable", label = "Pick a Variable",
+                                                             choices = list("Lung Efficacy" = ELU,
+                                                                            "Spleen Efficacy" = ESP)),
+                                                radioButtons("scatter_level", label = "Pick a Level",
+                                                             choices = list("Cmax" = Cmax,
+                                                                            "Trough" = Trough)),
+                                                plotOutput("scatter_plot")
+                                                ),
+                                       tabPanel("Linear Model",
+                                                radioButtons("linear_variable", label = "Pick a Variable",
+                                                             choices = list("Lung Efficacy" = ELU,
+                                                                            "Spleen Efficacy" = ESP)),
+                                                radioButtons("linear_level", label = "Pick a Level",
+                                                             choices = list("Cmax" = Cmax,
+                                                                            "Trough" = Trough)),
+                                                DT::dataTableOutput("linear_model")
+                                                ),
                                        tabPanel("LASSO Model",
                                                 radioButtons("variable_lasso", label = "Pick a Variable",
                                                              choices = list("Lung Efficacy" = ELU,
                                                                             "Spleen Efficacy" = ESP)),
-                                                radioButtons("dosage", label = "Pick a Dosage", 
+                                                radioButtons("lasso_dosage", label = "Pick a Dosage", 
                                                              choices = list("50" = fifty,
-                                                                            "100" = hundred))),
-                                                verbatimTextOutput("lasso_model"))
+                                                                            "100" = hundred)),
+                                                dataTableOutput("lasso_model")))
                            )
                   )
                   )
@@ -314,22 +342,6 @@ server <- function(input, output) {
       file.rename(invitro_file$datapath, 
                   paste(invitro_file$datapath, ext, sep = "."))
       read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
-      
-    })
-    
-# render raw efficacy summary table    
-    output$raw_efficacy_summary_table <- DT::renderDataTable({
-      efficacy_summary_file <- input$efficacy_summary
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(efficacy_summary_file)){
-        return(NULL)
-      }
-      
-      ext <- tools::file_ext(efficacy_summary_file$name)
-      file.rename(efficacy_summary_file$datapath, 
-                  paste(efficacy_summary_file$datapath, ext, sep = "."))
-      read_excel(paste(efficacy_summary_file$datapath, ext, sep = "."), sheet = 1)
       
     })
     
@@ -477,19 +489,9 @@ server <- function(input, output) {
                                                  tissue_std_pk_summarized,
                                                  in_vitro_clean)
       efficacy_summary_file
+      
     })
-  
-# Render data table with cleaned efficacy summary data
-    #output$clean_efficacy_summary_table <- DT::renderDataTable({ input$efficacy_summary_file
-    # Make sure you don't show an error by trying to run code before a file's been uploaded
-    #if(is.null(efficacy_summary_file)){
-    #  return(NULL)
-    #}
-      #efficacy_summary_file_1 <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
-      #                                "master/CSV_Files/efficacy_summary.csv")
-      #efficacy_summary_file <- read_csv(efficacy_summary_file_1)
-    #})
-  
+    
 ######## CODE FOR RENDERING VIS DATA PLOTS OF RAW DATA
   
 # Render plot with summary of clean efficacy data
@@ -581,6 +583,65 @@ server <- function(input, output) {
 # Render plot with summary of efficacy summary data
     output$summary_efficacy_summary_plot <- renderPlot({
       
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+      efficacy_summary_file
+      
       # Make sure you don't show an error by trying to run code before a file's been uploaded
       if(is.null(efficacy_summary_file)){
         return(NULL)
@@ -594,6 +655,66 @@ server <- function(input, output) {
     #Beeswarm In Vitro
     
     output$beeswarm_invitro_plot <- renderPlotly({
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+      efficacy_summary_file
+
         in_vitro <- efficacy_summary_file %>%
           rename(Drugs = "drug") %>% 
           unite(dosage_interval, dosage:dose_int, sep = "")
@@ -626,12 +747,12 @@ server <- function(input, output) {
         }
 
         in_vitro_SMplot <- in_vitro_SM %>% 
-          ggplot(aes(x = dosage_interval, y = value, color = Drugs)) +
+          ggplot(aes(x = dosage_interval, y = as.numeric(as.character(value)), color = Drugs)) +
           geom_beeswarm(alpha = 0.5, size = 1.5, groupOnX = FALSE) +
           labs(x = 'Dosage-Interval', y = 'Value') +
           ggtitle('In-Vitro Distribution of TB Drugs') +
           theme_few() +
-          facet_wrap(~ input$CheckBeeVarInVitro, ncol = 4, scale="free")
+          facet_wrap(~ input$CheckBeeVarInVitro, ncol = 2, scale="free")
       
         in_vitro_plotly <- ggplotly(in_vitro_SMplot)
         
@@ -642,11 +763,70 @@ server <- function(input, output) {
 ### beeswarm IN VIVO plot
     
     output$beeswarm_invivo_plot <- renderPlotly({
-      in_vitro <- efficacy_summary_file %>%
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+
+      in_vivo <- efficacy_summary_file %>%
         rename(Drugs = "drug") %>% 
         unite(dosage_interval, dosage:dose_int, sep = "")
       
-      in_vivo_SM <- in_vitro %>% 
+      in_vivo_SM <- in_vivo %>% 
         gather(key = variable, value = value, -Drugs, -dosage_interval) %>% 
         mutate(variable_filtered = variable) %>% 
         mutate(variable = factor(variable, levels = c("RIM", "OCS","ICS","ULU","SLU","SLE","PLA"),
@@ -671,25 +851,209 @@ server <- function(input, output) {
       }
       
       in_vivo_SMplot <- in_vivo_SM %>% 
-        ggplot(aes(x = dosage_interval, y = value, color = Drugs)) +
+        ggplot(aes(x = dosage_interval, y = as.numeric(as.character(value)), color = Drugs)) +
         geom_beeswarm(alpha = 0.5, size = 1.5, groupOnX = FALSE) +
         labs(x = 'Dosage-Interval', y = 'Value') +
         ggtitle('In-Vivo Distribution of TB Drugs') +
         theme_few() +
-        facet_wrap(~ input$CheckBeeVarInVivo, ncol = 4, scale="free")
+        facet_wrap(~ input$CheckBeeVarInVivo, ncol = 2, scale="free")
       
       in_vivo_plotly <- ggplotly(in_vivo_SMplot)
       
       return(in_vivo_plotly)
       
     })
+    
+##### Dendrogram output
+    
+    output$dendrogram <- renderPlot({
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+      
+      if(input$dendrogram_radio == "by_test"){
+        by_test <- efficacy_summary_file %>%
+          dplyr::rename("plasma" = PLA,
+                        "uninvolved_lung" = ULU,
+                        "outer_caseum" = OCS,
+                        "inner_caseum" = ICS,
+                        "standard_lung" = SLU,
+                        "standard_lesion" = SLE,
+                        "macrophage_uptake" = MacUptake,
+                        "human_plasma" =huPPB,
+                        "mouse_plasma" = muPPB) %>% 
+          dplyr::select(plasma:standard_lesion,cLogP:macrophage_uptake) %>% 
+          dplyr::mutate_all(funs(scale(.))) %>%
+          as.matrix() %>% 
+          t() %>% 
+          dist() %>% 
+          hclust() %>% 
+          as.dendrogram(horiz = TRUE, hang = .3) #%>% 
+        #new function within function to plot colors red = invivo; blue = in vitro
+      
+        labelCol <- function(by_test) {
+          if (is.leaf(by_test)) {
+            ## fetch label
+            label <- attr(by_test, "label") 
+            ## set label color to red for A and B, to blue otherwise
+            attr(by_test, "nodePar") <- list(lab.col=ifelse(label %in% 
+                                                              c("macrophage_uptake","cLogP", "MIC_Erdman", "MICserumErd", 
+                                                                "MIC_Rv","Caseum_binding",
+                                                                "human_binding_plasma",
+                                                                "mouse_binding_plasma"), "red", "blue"))  # red is invitro
+          }
+          return(by_test)
+        }
+        d <- dendrapply(as.dendrogram(by_test), labelCol)
+        plot_horiz.dendrogram(d, side = TRUE, main = "Comparison by Test")
+        #plot(d, horiz = TRUE, main = "by test", sub="color coded by test type", xlab = "")
+        cols <- c("red","blue")
+        legend("topright", legend = c("invitro","invivo"),
+               fill = cols, border = cols, bty = "n")
+        par(cex = 0.6, mar=c(9,11,10,10)) %>% #cex magnifies text; mar does axis
+          par(cex = 0.6) 
+        #base plot oldpar<- par(mar xxxx, oma xxx)  run at start
+        # par(oldpar) rest    at begining and end of function ; side effect of function
+        # try ggplot or ggdend with colors 
+      } else {
+        by_drug <- efficacy_summary_file %>% 
+          tidyr::unite(drugdetail, drug:level, sep = "_") %>% #combine identifying data into one column, 
+          mutate_at(funs(scale(.) %>% as.vector),
+                    .vars = c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB","muPPB",
+                              "MIC_Erdman", "MICserumErd", "MIC_Rv", "Caseum_binding", "MacUptake")) %>% #scales
+          select(drugdetail, PLA:MacUptake, -ELU, -ESP) %>%  #remove efficacy 
+          column_to_rownames (var = "drugdetail") %>%  #make drugdetail leaf name!  ignore warning
+          dist() %>% 
+          hclust() %>%  #can change method 
+          as.dendrogram(horiz = TRUE, hang = .1) 
+        ggdendrogram(by_drug, rotate = TRUE, theme_dendro = TRUE) +
+          labs(title = "Comparison by drug, dose, dose-int, and level") +
+          theme(axis.title.x = element_blank(),
+                axis.text.x=element_blank(),
+                axis.ticks.x=element_blank())
+        
+      }
+    })
    
 
-    
 ######INDEPENDENT DEPENDENT GROUP FUNCTIONS
     ##regression tree
     
     output$regression_tree <- renderPlot({
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+      efficacy_summary_file
 
       if(is.null(efficacy_summary_file)){
         return(NULL)
@@ -747,7 +1111,68 @@ server <- function(input, output) {
 ###### best variables output
     
     output$best_variables <- renderPlotly({
-    
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+      
+      variable_definitions <- paste0("https://github.com/dfat5/erhs_535_group3/blob/,
+                                    master/data/variable_definitions.csv")
+
     if(input$variable == "ELU"){
       dataset <- efficacy_summary_file %>% 
         select(-ESP) %>% 
@@ -760,24 +1185,37 @@ server <- function(input, output) {
       
       efficacy.rf <- randomForest( ELU~ ., data =dataset,
                                    na.action = na.roughfix,
-                                   ntree= 1000, 
+                                   ntree= 500, 
                                    importance = TRUE)
       graph <-importance(efficacy.rf, type = 1) %>% 
         as.data.frame() %>% 
         rownames_to_column() %>% 
         rename(variable = rowname, 
-               mse = `%IncMSE`) 
+               mse = `%IncMSE`) %>% 
+        left_join(variable_definitions, 
+                  by = c("variable" = "Name"))
       
       
-      graph <- graph %>% 
+      test <- graph %>% 
         filter(mse > 0) %>% 
         ggplot()+
-        geom_point(aes(x = mse, y = reorder(variable, mse)))+
+        geom_point(aes(x = mse, 
+                       y = reorder(Label, mse), 
+                       color = Vitro_or_Vivo, 
+                       text = paste('Mean Standard Error: ', round(mse, digits = 2), '\n',
+                                    'Variable: ', Label, '\n',
+                                    'Definition: ', Definition
+                       )))+
         theme_minimal()+
+        ggtitle("Predicing Variable Importance Using Lung Efficacy")+
         labs(y = "Variable", 
-             x = "Importance") +
-        ggtitle("Lung Efficacy")
-      return(ggplotly(graph))
+             x = "Importance", 
+             color = " " )
+      
+      
+      return(ggplotly(test, tooltip = c("text")))
+      
+      
     }
     
     if (input$variable == "ESP"){
@@ -792,83 +1230,377 @@ server <- function(input, output) {
       
       efficacy.rf <- randomForest( ESP ~ ., data =dataset,
                                    na.action = na.roughfix,
-                                   ntree= 1000, 
+                                   ntree= 500, 
                                    importance = TRUE)
       
       graph <-importance(efficacy.rf, type = 1) %>% 
         as.data.frame() %>% 
         rownames_to_column() %>% 
         rename(variable = rowname, 
-               mse = `%IncMSE`) 
+               mse = `%IncMSE`) %>% 
+        left_join(variable_definitions, 
+                  by = c("variable" = "Name"))
       
       
-      graph <- graph %>% 
+      test <- graph %>% 
         filter(mse > 0) %>% 
         ggplot()+
-        geom_point(aes(x = mse, y = reorder(variable, mse)))+
+        geom_point(aes(x = mse, 
+                       y = reorder(Label, mse), 
+                       color = Vitro_or_Vivo, 
+                       text = paste('Mean Standard Error: ', round(mse, digits = 2), '\n',
+                                    'Variable: ', Label, '\n',
+                                    'Definition: ', Definition
+                       )))+
         theme_minimal()+
+        ggtitle("Predicing Variable Importance Using Spleen Efficacy")+
         labs(y = "Variable", 
-             x = "Importance") +
-        ggtitle("Spleen Efficacy")
-      return(ggplotly(graph))
+             x = "Importance", 
+             color = " " )
+      
+      
+      return(ggplotly(test, tooltip = c("text")))
     }
     
     })
     
-##LASSO Model Output
+####Scatter Plot Output
     
-    output$lasso_model <- renderPrint({
+    output$scatter_plot <- renderPlot({
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+      efficacy_summary_file
+        
+        function_data <- efficacy_summary_file %>% 
+          filter(level == input$scatter_level) %>% 
+          gather(key = independent_var, value = indep_measure, -drug, -dosage, -dose_int, -level, -ELU, -ESP, na.rm = TRUE) %>% 
+          select(drug, dosage, dose_int, level, input$scatter_variable, indep_measure, independent_var) 
+        
+        if(input$scatter_variable == "ELU") {vect <- function_data$ELU}
+        if(input$scatter_variable == "ESP") {vect <- function_data$ESP}
+        
+        scatter_plot <- function_data %>%
+          ggplot(aes(x = indep_measure, y = vect, color = dose_int)) +
+          geom_point(alpha = 0.5) +
+          geom_smooth(method = lm, se = FALSE) +
+          labs(x = "Independent variable", y = "Dependent Variable") +
+          facet_wrap(~independent_var, scales = "free_x")
+        
+        return(scatter_plot)
+
+    })
     
-    if (input$dosage == "50"){
-    data <- na.omit(efficacy_summary_file) %>% 
-      select_if(is.numeric) %>%
-      filter(dosage == 50)
+#######LINEAR MODEL
     
-    response <- efficacy_summary_file %>% 
-      select(input$variable)
+    output$linear_model <- renderPlot({
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
     
-    predictors <- efficacy_summary_file %>%
-      select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
+      
+      if(input$linear_variable == "ELU") {
+        
+        function_data_ELU <- efficacy_summary_file %>% 
+          filter(level == input$linear_level) %>% 
+          gather(key = independent_var, value = indep_measure, -drug, -dosage, -dose_int, -level, -ELU, -ESP, na.rm = TRUE)
+          
+          function_data_ELU <- function_data_ELU %>% 
+          select(drug, dosage, dose_int, level, ELU, indep_measure, independent_var) 
+        
+          model_function_ELU <- function(efficacy_summary_file) {
+            model_results <- lm(function_data_ELU$ELU ~ scale(function_data_ELU$indep_measure))
+          }
+        
+        estimate_results_ELU <- function_data_ELU %>% 
+          group_by(independent_var, dose_int) %>% 
+          nest() %>% 
+          mutate(mod_results = purrr::map(data, model_function_ELU())) %>% 
+          mutate(mod_coefs = purrr::map(mod_results, broom::tidy)) %>% 
+          select(independent_var, dose_int, mod_results, mod_coefs) %>% 
+          unnest(mod_coefs) %>% 
+          filter(term == "scale(indep_measure)")
+        
+        coef_plot_ELU <- estimate_results_ELU %>%
+          mutate(independent_var = forcats::fct_reorder(independent_var, estimate, fun = max)) %>%
+          rename(Dose_Interval = dose_int) %>% 
+          ggplot(aes(x = estimate, y = independent_var, color = Dose_Interval)) +
+          geom_point(aes(size = 1 / std.error)) +
+          scale_size_continuous(guide = FALSE) +
+          theme_few() + 
+          ggtitle(label = "Linear model coefficients as function of independent variables, \n by drug dose and model uncertainty", subtitle = "smaller points have more uncertainty than larger points") +
+          geom_vline(xintercept = 0, color = "cornflower blue") 
+        
+        return(coef_plot_ELU)
+      }
+      
+      if(input$linear_variable == "ESP") {
+        
+        function_data_ESP <- efficacy_summary_file %>% 
+          filter(level == input$linear_level) %>% 
+          gather(key = independent_var, value = indep_measure, -drug, -dosage, -dose_int, -level, -ELU, -ESP, na.rm = TRUE)
+          
+          function_data_ESP <- function_data_ESP %>% 
+          select(drug, dosage, dose_int, level, ESP, indep_measure, independent_var)
+          
+          model_function_ESP <- function(efficacy_summary_file) {
+            model_results <- lm(function_data_ESP$ESP ~ scale(function_data_ESP$indep_measure))
+          }
+        
+        estimate_results_ESP <- function_data_ESP %>% 
+          group_by(independent_var, dose_int) %>% 
+          nest() %>% 
+          mutate(mod_results = purrr::map(data, model_function_ESP())) %>% 
+          mutate(mod_coefs = purrr::map(mod_results, broom::tidy)) %>% 
+          select(independent_var, dose_int, mod_results, mod_coefs) %>% 
+          unnest(mod_coefs) %>% 
+          filter(term == "scale(indep_measure)")
+        
+        coef_plot_ESP <- estimate_results_ESP %>%
+          mutate(independent_var = forcats::fct_reorder(independent_var, estimate, fun = max)) %>%
+          rename(Dose_Interval = dose_int) %>% 
+          ggplot(aes(x = estimate, y = independent_var, color = Dose_Interval)) +
+          geom_point(aes(size = 1 / std.error)) +
+          scale_size_continuous(guide = FALSE) +
+          theme_few() + 
+          ggtitle(label = "Linear model coefficients as function of independent variables, \n by drug dose and model uncertainty", subtitle = "smaller points have more uncertainty than larger points") +
+          geom_vline(xintercept = 0, color = "cornflower blue") 
+        
+        return(coef_plot_ESP)
+        }
+      
+    })
+    
+######### not sure if we need this plot since it uses clean_2_combined.csv
+    
+    
+    
+#########LASSO Model Output
+    
+    output$lasso_model <- DT::renderDataTable ({
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)
+      
+    if (input$lasso_dosage == "50"){
+    dataz <- na.omit(efficacy_summary_file) %>% 
+      dplyr::mutate(as.numeric(as.integer(dosage))) %>% 
+      dplyr::select_if(is.numeric) %>%
+      dplyr::filter(efficacy_summary_file$dosage == 50)
+    
+    response <- dataz %>% 
+      dplyr::select(input$variable_lasso)
+    
+    predictors <- dataz %>%
+      dplyr::select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
                "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
     
     y <- as.numeric(unlist(response))
     x <- as.matrix(predictors)
     
     fit =  glmnet(x, y)
-    #issues with this part of the code
     
-    coeff <- coef(fit,s=0.1)
-    coeff <- as.data.frame(as.matrix(coeff))
+    coeff_50 <- coef(fit,s=0.1)
+    coeff_50 <- as.data.frame(as.matrix(coeff_50)) %>% 
+      rownames_to_column() 
+    colnames(coeff_50) <- c("predictor", "coeff")
     
-    coeff <- coeff %>% 
-      filter(coeff > 0)
-    return(kable(coeff))
+    coeff_50 <- coeff_50 %>% 
+      dplyr::filter(coeff_50 > 0)
+    return(coeff_50)
     }
       
-      if (input$dosage == "100"){
-        data <- na.omit(efficacy_summary_file) %>% 
-          select_if(is.numeric) %>%
-          filter(dosage == 100)
+      if (input$lasso_dosage == "100"){
+        dataz_2 <- na.omit(efficacy_summary_file) %>% 
+          dplyr::mutate(as.numeric(as.integer(dosage))) %>% 
+          dplyr::select_if(is.numeric) %>%
+          dplyr::filter(efficacy_summary_file$dosage == 100)
         
-        response <- efficacy_summary_file %>% 
-          select(input$variable_lasso)
+        response_2 <- dataz_2 %>% 
+          dplyr::select(input$variable_lasso)
         
-        predictors <- efficacy_summary_file %>%
-          select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
+        predictors_2 <- dataz_2 %>%
+          dplyr::select(c("PLA", "ULU", "RIM", "OCS", "ICS", "SLU", "SLE", "cLogP", "huPPB", 
                    "muPPB", "MIC_Erdman", 'MICserumErd', "MIC_Rv", "Caseum_binding", "MacUptake"))
         
-        y <- as.numeric(unlist(response))
-        x <- as.matrix(predictors)
+        y <- as.numeric(unlist(response_2))
+        x <- as.matrix(predictors_2)
         
-        fit = glmnet(x, y)
-        ##issues with this part of the code
+        fit =  glmnet(x, y)
         
         coeff <- coef(fit,s=0.1)
-        coeff <- as.data.frame(as.matrix(coeff))
+        coeff <- as.data.frame(as.matrix(coeff)) %>% 
+          rownames_to_column() 
+        colnames(coeff) <- c("predictor", "coeff")
         
         coeff <- coeff %>% 
-          filter(coeff > 0)
-        return(kable(coeff))
+          dplyr::filter(coeff > 0)
+        return(coeff)
       }
       
     })
