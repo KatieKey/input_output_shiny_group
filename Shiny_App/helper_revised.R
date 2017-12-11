@@ -94,7 +94,15 @@ plasma_summarize <- function(plasma_clean){
 
 ##### Clean the tissue laser data into a tidy format
 
-# 
+# Function Title: Cleaning Tissue Laser Dataframe
+
+# This function takes the by-mouse MALDI tissue laser capture data as an input (tissue_laser_df)
+# and returns a tidy version of the data. Columns are selected down to only include the
+# relevant information needed for summarizing and visualizing. The function creates a
+# list of mice ids that is input into the dataframe in order to spread the dataset. The 
+# original dataset must include the column names in the `select` call of the function,
+# except the `Parent [ng/ml` column name, which should be named `Parent` in the original
+# Excel file.
 tissue_laser_function <- function(tissue_laser_df) {
   tissue_laser_clean <- tissue_laser_df %>%
     rename(`Parent [ng/ml]` = Parent) %>%
