@@ -46,7 +46,7 @@ ui, what server code looks like, what actual output looks like
 
 ## Datasets
 
-Each group member cleaned one orginal data file to match the summarized version
+Each group member cleaned one original data file to match the summarized version
 provided at the beginning of the project.
 
 - Efficacy (Katie)
