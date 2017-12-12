@@ -45,7 +45,8 @@ source("Group3Functions.R")
 ui <- fluidPage(
   
   titlePanel("Mycobacteria Research Laboratories"),
-  helpText("Upload Data and Explore Data Tables and Graphs Using the Tabs Below"),
+  helpText(h4("Upload Data and Explore Data Tables and Various Plots Using the Tabs Below")),
+  helpText("Note: The Plots May Take a Moment to Load"),
   
   sidebarLayout(
     sidebarPanel(width = 3, (label = h3("Upload Data")),
@@ -217,6 +218,9 @@ ui <- fluidPage(
                                                 plotOutput("mouse_model")
                                                 ),
                                       tabPanel("Lesion Model",
+                                               radioButtons("lesion_level", label = "Pick a Level",
+                                                            choices = list("Cmax" = Cmax,
+                                                                           "Trough" = Trough)),
                                                plotOutput("lesion_model")
                                                )
                                 )
@@ -1094,7 +1098,7 @@ server <- function(input, output) {
         theme_void() +
         theme(legend.position = 'right') +
         labs(title = "Biodistribution by drug and dosage", 
-             subtitle = "For plasma, standard lung, and standard lesion concentrations") +
+             subtitle = "For plasma standard lung, and standard lesion concentrations \n") +
         coord_fixed()  +
         scale_fill_viridis(option = "magma") + 
         facet_wrap(~ drug_dosing)
@@ -1165,9 +1169,37 @@ server <- function(input, output) {
                                                  tissue_std_pk_summarized,
                                                  in_vitro_clean)    
       
+      example_data1 <- efficacy_summary_file %>% 
+        select(drug, dosage, dose_int, level, ULU, RIM, OCS, ICS) %>% 
+        unite(drug_dosing, drug, dosage, dose_int, sep = "-") %>% 
+        filter(level == input$lesion_level) %>% 
+        gather(ULU:ICS, key = "AREA", value = concentration) %>% 
+        mutate(AREA = factor(AREA, levels = c("ULU", "RIM", "OCS", "ICS"),
+                             labels = c("LUNG", "RIM", "OUTER", "INNER")),
+               AREA = as.character(AREA))
       
+      lesion <- paste0("https://raw.githubusercontent.com/KatieKey/",
+                       "input_output_shiny_group/master/Shiny_App/LesionCoord.csv")
+      lesion <- read_csv(lesion)
+        
+        lesion <- lesion %>% 
+        left_join(example_data1, by = "AREA")
       
+      #Plot drug distribution, facetted by drug_dosing
+     lesion_plot <- ggplot(data =lesion, aes(mapping = TRUE, x = X, y = Y, group = HOLE, fill = concentration)) +
+        geom_polypath(rule = "evenodd") +
+        geom_path(colour = "black", size = .5) +
+        theme_void() +
+        theme(legend.position = 'right') +
+        labs(title = "Biodistribution by drug and dosage",
+             subtitle = "For uninvolved lung, rim (of lesion), outer caseum, 
+             and inner caseum concentrations \n") +
+        coord_fixed()  +
+        scale_fill_viridis(option = "magma") + 
+        facet_wrap(~ drug_dosing)
       
+      lesion_plot
+  
     })
     
 
