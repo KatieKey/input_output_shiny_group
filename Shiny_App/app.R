@@ -1192,7 +1192,7 @@ server <- function(input, output) {
         theme_void() +
         theme(legend.position = 'right') +
         labs(title = "Biodistribution by drug and dosage",
-             subtitle = "For uninvolved lung, rim (of lesion), outer caseum, 
+             subtitle = "For uninvolved lung, rim (of lesion), outer caseum,  
              and inner caseum concentrations \n") +
         coord_fixed()  +
         scale_fill_viridis(option = "magma") + 
