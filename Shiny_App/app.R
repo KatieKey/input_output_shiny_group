@@ -32,8 +32,10 @@ library(tidyverse)
 library(gghighlight)
 library(dendextend)
 library(ggdendro)
-library(pander)
 library(purrr)
+library(ggmap)
+library(ggpolypath)
+library(viridis)
 
 source("helper_revised.R")
 source("Group2Functions.R")
@@ -208,8 +210,15 @@ ui <- fluidPage(
                                                                             "Drug" = by_drug)),
                                                 plotOutput("dendrogram", width = "140%")
                                                 ),
-                                       tabPanel("Plot3"),
-                                      tabPanel("Plot4")
+                                       tabPanel("Mouse Model",
+                                                radioButtons("mouse_level", label = "Pick a Level",
+                                                             choices = list("Cmax" = Cmax,
+                                                                            "Trough" = Trough)),
+                                                plotOutput("mouse_model")
+                                                ),
+                                      tabPanel("Lesion Model",
+                                               plotOutput("lesion_model")
+                                               )
                                 )
                                 ),
                   
@@ -995,6 +1004,172 @@ server <- function(input, output) {
       }
     })
    
+
+##### Mouse model output
+    
+    output$mouse_model <- renderPlot({
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)    
+      
+      example_data <- efficacy_summary_file %>% 
+        select(drug, dosage, dose_int, level, PLA, SLU, SLE) %>% 
+        unite(drug_dosing, drug, dosage, dose_int, sep = "-") %>% 
+        filter(level == input$mouse_level) %>% 
+        gather(PLA:SLE, key = "ELEMENT", value = concentration) %>% 
+        mutate(ELEMENT = factor(ELEMENT, levels = c("PLA", "SLU", "SLE"),
+                                labels = c("MOUSE", "LUNGS", "LESION")),
+               ELEMENT = as.character(ELEMENT))
+      
+      mouse <- paste0("https://raw.githubusercontent.com/KatieKey/",
+                      "input_output_shiny_group/master/Shiny_App/MouseCoord.csv")
+      mouse <- read_csv(mouse)
+      
+      mouse <- mouse %>% 
+        dplyr::select("ELEMENT","HOLE","X","Y") %>% 
+        left_join(example_data, by = "ELEMENT")
+      
+      
+      #Plot drug distribution, facetted by drug_dosing
+      mouse_plot <- mouse %>% 
+        ggplot(aes(mapping = TRUE, x = X, y = Y, group = HOLE, 
+                   fill = concentration)) +
+        geom_polypath(rule = "evenodd") +
+        geom_path(colour = "black", size = .5) +
+        theme_void() +
+        theme(legend.position = 'right') +
+        labs(title = "Biodistribution by drug and dosage", 
+             subtitle = "For plasma, standard lung, and standard lesion concentrations") +
+        coord_fixed()  +
+        scale_fill_viridis(option = "magma") + 
+        facet_wrap(~ drug_dosing)
+      
+      mouse_plot
+      
+    })
+    
+######Lesion model output
+    
+    output$lesion_model <- renderPlot({
+      
+      efficacy_file <- input$efficacy
+      plasma_file <- input$plasma
+      tissue_laser_file <- input$tissue_laser
+      tissue_std_pk_file <- input$tissue_std_pk
+      invitro_file <- input$invitro
+      
+      # Make sure you don't show an error by trying to run code before a file's been uploaded
+      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
+         is.null(tissue_std_pk_file) | is.null(invitro_file)){
+        return(NULL)
+      }
+      
+      ## Clean efficacy file
+      ext <- tools::file_ext(efficacy_file$name)
+      file.rename(efficacy_file$datapath,
+                  paste(efficacy_file$datapath, ext, sep = "."))
+      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
+      efficacy_clean <- efficacy_function(efficacy_df)
+      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
+      
+      ## Clean plasma file
+      ext <- tools::file_ext(plasma_file$name)
+      file.rename(plasma_file$datapath,
+                  paste(plasma_file$datapath, ext, sep = "."))
+      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
+      plasma_clean <- plasma_function(plasma_df)
+      plasma_summarized <- plasma_summarize(plasma_clean)
+      
+      ## Clean laser file
+      ext <- tools::file_ext(tissue_laser_file$name)
+      file.rename(tissue_laser_file$datapath,
+                  paste(tissue_laser_file$datapath, ext, sep = "."))
+      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
+      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
+      
+      ## Clean standard tissue file
+      ext <- tools::file_ext(tissue_std_pk_file$name)
+      file.rename(tissue_std_pk_file$datapath,
+                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
+      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
+      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
+      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
+      
+      ## Clean in vitro file
+      ext <- tools::file_ext(invitro_file$name)
+      file.rename(invitro_file$datapath,
+                  paste(invitro_file$datapath, ext, sep = "."))
+      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
+      in_vitro_clean <- in_vitro_function(invitro_df)
+      
+      # Combine everything into the efficacy summary file
+      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
+                                                 plasma_summarized,
+                                                 tissue_laser_summarized,
+                                                 tissue_std_pk_summarized,
+                                                 in_vitro_clean)    
+      
+      
+      
+      
+    })
+    
 
 ######INDEPENDENT DEPENDENT GROUP FUNCTIONS
     ##regression tree

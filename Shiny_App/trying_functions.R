@@ -91,3 +91,39 @@ library(stats)
     
     coef_plot
     
+#######
+    
+    example_data <- efficacy_summary %>% 
+      select(drug, dosage, dose_int, level, PLA, SLU, SLE) %>% 
+      unite(drug_dosing, drug, dosage, dose_int, sep = "-") %>% 
+      filter(level == "Trough") %>% 
+      gather(PLA:SLE, key = "ELEMENT", value = concentration) %>% 
+      mutate(ELEMENT = factor(ELEMENT, levels = c("PLA", "SLU", "SLE"),
+                              labels = c("MOUSE", "LUNGS", "LESION")),
+             ELEMENT = as.character(ELEMENT))
+    
+    mouse <- paste0("https://raw.githubusercontent.com/KatieKey/",
+                      "input_output_shiny_group/master/Shiny_App/MouseCoord.csv")
+    mouse <- read_csv(mouse)
+    
+    mouse <- mouse %>% 
+      dplyr::select("ELEMENT","HOLE","X","Y") %>% 
+      left_join(example_data, by = "ELEMENT")
+    
+    
+    #Plot drug distribution, facetted by drug_dosing
+    mouse_plot <- mouse %>% 
+      ggplot(aes(mapping = TRUE, x = X, y = Y, group = HOLE, 
+                               fill = concentration)) +
+      geom_polypath(rule = "evenodd") +
+      geom_path(colour = "black", size = .5) +
+      theme_void() +
+      theme(legend.position = 'right') +
+      labs(title = "Biodistribution by drug and dosage", 
+           subtitle = "For plasma, standard lung, and standard lesion concentrations") +
+      coord_fixed()  +
+      scale_fill_viridis(option = "magma") + 
+      facet_wrap(~ drug_dosing)
+    
+    mouse_plot
+    
