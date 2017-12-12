@@ -129,3 +129,31 @@ library(stats)
     
 ####
     
+    in_vivo <- efficacy_summary %>%
+      select(drug, dosage, dose_int, PLA, ULU, RIM, OCS, ICS, SLU, SLE) %>% 
+      rename(Drugs = "drug") %>% 
+      unite(dosage_interval, dosage:dose_int, sep = "") #brings together dosage (50 & 100) with intervals (BID & QD) 
+    
+    head(in_vivo)
+    
+    #gather for small multiples in-vivo markers
+    in_vivo_SM <- in_vivo %>% 
+      gather(key = variable, value = value, -Drugs, -dosage_interval) %>% #allows us to make small multiples by combining all the values into one column and the variable they belong to in another column 
+      mutate(variable = factor(variable, levels = c("RIM", "OCS","ICS","ULU","SLU","SLE","PLA"),
+                               labels = c("Rim (of lesion)","Outer Caseum","Inner Caseum","Uninvolved Lung", "Standard Lung", "Standard Lesion", "Plasma"))) %>% 
+      mutate(dosage_interval = factor(dosage_interval, levels = c("50BID","100QD"))) #prevents the numeric scaling of the x axis values, so it spaces it like two factors in the order given above
+    
+    head(in_vivo_SM)
+    
+    #plot small multiples in-vivo markers 
+    in_vivo_SMplot <- in_vivo_SM %>% 
+      ggplot(aes(x = dosage_interval, y = value, color = Drugs))+ #main structure of x & y axis
+      geom_beeswarm(alpha = 0.5, size = 1.5)+ #incorporates beeswarm plot style 
+      scale_y_log10()+ #log scale, used for the invivo group to cover wide range of values 
+      labs(x = 'Dosage-Interval', y = 'Value')+ 
+      ggtitle('In-Vivo Distribution of TB Drugs')+ 
+      theme_few()+
+      facet_wrap(~ variable, ncol = 4) #creates small multiples by variable 
+    
+    in_vivo_SMplot 
+    

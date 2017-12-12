@@ -135,8 +135,9 @@ ui <- fluidPage(
                            tabsetPanel(type = "tabs",
                                        tabPanel("In Vitro", width = 2,
                                                 helpText("Select and Deselect to Explore Efficacy Summary Data"),
-                                checkboxGroupInput("CheckBeeVarInVitro",
-                                label = h3("Check Variables To Explore"), 
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
+                                 checkboxGroupInput("CheckBeeVarInVitro",
+                                label = h4("Check Variables To Explore"), 
                                 choices = list("Caseum_binding" = Caseum_binding, 
                                                "cLogP" = cLogP,
                                                "huPPB" = huPPB,
@@ -153,9 +154,12 @@ ui <- fluidPage(
                                               "MICserumErd" = MICserumErd,
                                               "MIC_Rv" = MIC_Rv,
                                               "MacUptake" = MacUptake)
+                                                    )
                                   ),
+                                div(style="display: inline-block;vertical-align:top; width: 100px;",HTML("<br>")),
+                                div(style="display: inline-block;vertical-align:top; width: 150px;",
                                 checkboxGroupInput("CheckBeeDrugInVitro", 
-                                 label = h3("Check Drugs To Explore"), 
+                                 label = h4("Check Drugs To Explore"), 
                                  choices = list("DRUG1" = DRUG1, "DRUG2" = DRUG2, 
                                                 "DRUG3" = DRUG3,
                                  "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
@@ -166,13 +170,15 @@ ui <- fluidPage(
                                              "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
                                              "DRUG7" = DRUG7, "DRUG8" = DRUG8, "DRUG9" = DRUG9,
                                              "DRUG10" = DRUG10, "DRUG11" = DRUG11)
+                                )
                                  ),
                                  plotlyOutput("beeswarm_invitro_plot", width = "auto", height = "auto")
                                  ),
                                        tabPanel("In Vivo", width = 3,
                                                 helpText("Select and Deselect to Explore Efficacy Summary Data"),
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
                                                 checkboxGroupInput("CheckBeeVarInVivo",
-                                                                   label = h3("Check Variables To Explore"), 
+                                                                   label = h4("Check Variables To Explore"), 
                                                                    choices = list("RIM" = RIM, 
                                                                                   "OCS" = OCS,
                                                                                   "ICS" = ICS,
@@ -187,9 +193,12 @@ ui <- fluidPage(
                                                                                  "SLU" = SLU,
                                                                                  "SLE" = SLE,
                                                                                  "PLA" = PLA)
+                                                                                 )
                                                                                 ),
+                                                div(style="display: inline-block;vertical-align:top; width: 100px;",HTML("<br>")),
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
                                                 checkboxGroupInput("CheckBeeDrugInVivo", 
-                                                                   label = h3("Check Drugs To Explore"), 
+                                                                   label = h4("Check Drugs To Explore"), 
                                                                    choices = list("DRUG1" = DRUG1, "DRUG2" = DRUG2, 
                                                                                   "DRUG3" = DRUG3,
                                                                                   "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
@@ -200,76 +209,105 @@ ui <- fluidPage(
                                                                                 "DRUG4" = DRUG4, "DRUG5" = DRUG5, "DRUG6" = DRUG6,
                                                                                 "DRUG7" = DRUG7, "DRUG8" = DRUG8, "DRUG9" = DRUG9,
                                                                                 "DRUG10" = DRUG10, "DRUG11" = DRUG11)
+                                                )
                                                 ),
                                                 plotlyOutput("beeswarm_invivo_plot", width = "auto", height = "auto")
                                                 ),
                                        tabPanel("Dendrogram",
                                                 helpText("Help Text: human_plasma = human binding plasma &
                                                          mouse_plasma = mouse binding plasma"),
-                                                radioButtons("dendrogram_radio", label = "View Data By:",
+                                                radioButtons("dendrogram_radio", label = h4("View Data By:"),
                                                              choices = list("Test" = by_test,
                                                                             "Drug" = by_drug)),
                                                 plotOutput("dendrogram", width = "140%")
                                                 ),
                                        tabPanel("Mouse Model",
-                                                radioButtons("mouse_level", label = "Pick a Level",
+                                                radioButtons("mouse_level", label = h4("Pick a Level"),
                                                              choices = list("Cmax" = Cmax,
                                                                             "Trough" = Trough)),
                                                 plotOutput("mouse_model")
                                                 ),
                                       tabPanel("Lesion Model",
-                                               radioButtons("lesion_level", label = "Pick a Level",
+                                               radioButtons("lesion_level", label = h4("Pick a Level"),
                                                             choices = list("Cmax" = Cmax,
                                                                            "Trough" = Trough)),
                                                plotOutput("lesion_model")
                                                )
-                                )
-                                ),
+                                               )
+                                               ),
                   
                   tabPanel("Independent ~ Dependent", 
                            tabsetPanel(type = "tabs",
                                        tabPanel("Regression Trees",
-                                                radioButtons("regression", label = "Pick a Variable",
+                                                div(style="display: inline-block;vertical-align:top; width: 180px;",
+                                                radioButtons("regression", label = h4("Pick a Variable"),
                                                              choices = list("Lung Efficacy" = ELU,
                                                                          "Spleen Efficacy" = ESP)
+                                                             )
                                                              ),
-                                                numericInput("min_split", label = h3("Minimum Split for Regression Tree"), 
-                                                             value = 1, min = 0),
-                                                numericInput("min_bucket", label = h3("Minimum Buckets for Regression Tree"), 
-                                                             value = 1, min = 0),
+                                                div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                                div(style="display: inline-block;vertical-align:top; width: 180px;",
+                                                numericInput("min_split", label = h4("Minimum Split for Regression Tree"), 
+                                                             value = 1, min = 0)
+                                                             ),
+                                                div(style="display: inline-block;vertical-align:top; width: 80px;",HTML("<br>")),
+                                                div(style="display: inline-block;vertical-align:top; width: 180px;",
+                                                numericInput("min_bucket", label = h4("Minimum Buckets for Regression Tree"), 
+                                                             value = 1, min = 0)
+                                                             ),
                                                 plotOutput("regression_tree")
-                                                ),
+                                                            ),
                                        tabPanel("Best Variables",
-                                                radioButtons("variable", label = "Pick a Variable",
+                                                radioButtons("variable", label = h4("Pick a Variable"),
                                                              choices = list("Lung Efficacy" = ELU,
                                                                             "Spleen Efficacy" = ESP)),
                                                 plotlyOutput("best_variables")
-                                                ),
+                                                            ),
                                        tabPanel("Scatter Plot",
-                                                radioButtons("scatter_variable", label = "Pick a Variable",
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
+                                                radioButtons("scatter_variable", label = h4("Pick a Variable"),
                                                              choices = list("Lung Efficacy" = ELU,
-                                                                            "Spleen Efficacy" = ESP)),
-                                                radioButtons("scatter_level", label = "Pick a Level",
+                                                                            "Spleen Efficacy" = ESP))
+                                                           ),
+                                                div(style="display: inline-block;vertical-align:top; width: 100px;",HTML("<br>")),
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
+                                                radioButtons("scatter_level", label = h4("Pick a Level"),
                                                              choices = list("Cmax" = Cmax,
-                                                                            "Trough" = Trough)),
+                                                                            "Trough" = Trough)
+                                                             )
+                                                             ),
                                                 plotOutput("scatter_plot")
-                                                ),
+                                                             ),
                                        tabPanel("Linear Model",
-                                                radioButtons("linear_variable", label = "Pick a Variable",
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
+                                                radioButtons("linear_variable", label = h4("Pick a Variable"),
                                                              choices = list("Lung Efficacy" = ELU,
-                                                                            "Spleen Efficacy" = ESP)),
-                                                radioButtons("linear_level", label = "Pick a Level",
+                                                                            "Spleen Efficacy" = ESP)
+                                                             )
+                                                             ),
+                                                div(style="display: inline-block;vertical-align:top; width: 100px;",HTML("<br>")),
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
+                                                radioButtons("linear_level", label = h4("Pick a Level"),
                                                              choices = list("Cmax" = Cmax,
-                                                                            "Trough" = Trough)),
+                                                                            "Trough" = Trough)
+                                                             )
+                                                             ),
                                                 plotOutput("linear_model")
-                                                ),
+                                                            ),
                                        tabPanel("LASSO Model",
-                                                radioButtons("variable_lasso", label = "Pick a Variable",
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
+                                                radioButtons("variable_lasso", label = h4("Pick a Variable"),
                                                              choices = list("Lung Efficacy" = ELU,
-                                                                            "Spleen Efficacy" = ESP)),
-                                                radioButtons("lasso_dosage", label = "Pick a Dosage", 
+                                                                            "Spleen Efficacy" = ESP)
+                                                             )
+                                                             ),
+                                                div(style="display: inline-block;vertical-align:top; width: 100px;",HTML("<br>")),
+                                                div(style="display: inline-block;vertical-align:top; width: 150px;",
+                                                radioButtons("lasso_dosage", label = h4("Pick a Dosage"), 
                                                              choices = list("50" = fifty,
-                                                                            "100" = hundred)),
+                                                                            "100" = hundred)
+                                                             )
+                                                             ),
                                                 DT::dataTableOutput("lasso_model")))
                            )
                   )
