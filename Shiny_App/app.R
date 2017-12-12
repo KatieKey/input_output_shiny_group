@@ -471,26 +471,51 @@ server <- function(input, output) {
   
 # Render data table with raw efficacy data
   output$raw_efficacy_table <- DT::renderDataTable({
+    
+    if(is.null(efficacy_df())){
+      return(NULL)
+    }
+    
     efficacy_df()
   })
   
 # Render data table with raw plasma data
     output$raw_plasma_table <- DT::renderDataTable({
+      
+      if(is.null(plasma_df())){
+        return(NULL)
+      }
+      
       plasma_df()
     })
     
 # Render data table for raw tissue laser data
     output$raw_tissue_laser_table <- DT::renderDataTable({
+      
+      if(is.null(tissue_laser_df())){
+        return(NULL)
+      }
+      
       tissue_laser_df()
     })
     
 # Render data table for raw tissue std pk data
     output$raw_tissue_std_pk_table <- DT::renderDataTable({
+      
+      if(is.null(tissue_std_pk_df())){
+        return(NULL)
+      }
+      
       tissue_std_pk_df()
     })
     
 # Render data table for raw in vitro data
     output$raw_invitro_table <- DT::renderDataTable({
+      
+      if(is.null(in_vitro_df())){
+        return(NULL)
+      }
+      
       in_vitro_df()
     })
     
@@ -530,91 +555,57 @@ server <- function(input, output) {
   
 # Render plot with summary of clean efficacy data
       output$summary_efficacy_plot <- renderPlot({
+        
+        if(is.null(efficacy_clean())){
+          return(NULL)
+        }
+        
         vis_dat(efficacy_clean())
      }) 
   
 # Render plot with summary of clean plasma data  
     output$summary_plasma_plot <- renderPlot({
+      
+      if(is.null(plasma_clean())){
+        return(NULL)
+      }
+      
       vis_dat(plasma_clean())
     }) 
 
   
 # Render plot with summary of clean tissue laser data
     output$summary_tissue_laser_plot <- renderPlot({
+      
+      if(is.null(tissue_laser_clean())){
+        return(NULL)
+      }
+      
       vis_dat(tissue_laser_clean())
     }) 
   
 # Render plot with summary of clean tissue std pk data
     output$summary_tissue_std_pk_plot <- renderPlot({
+      
+      if(is.null(tissue_std_pk_clean())){
+        return(NULL)
+      }
+      
       vis_dat(tissue_std_pk_clean())
     }) 
     
 # Render plot with summary of clean in vitro data
     output$summary_invitro_plot <- renderPlot({
+      
+      if(is.null(in_vitro_clean())){
+        return(NULL)
+      }
+      
       vis_dat(in_vitro_clean())
     }) 
     
 # Render plot with summary of efficacy summary data
     output$summary_efficacy_summary_plot <- renderPlot({
-      
-      efficacy_file <- input$efficacy
-      plasma_file <- input$plasma
-      tissue_laser_file <- input$tissue_laser
-      tissue_std_pk_file <- input$tissue_std_pk
-      invitro_file <- input$invitro
-      
-      # Make sure you don't show an error by trying to run code before a file's been uploaded
-      if(is.null(efficacy_file) | is.null(plasma_file) | is.null(tissue_laser_file) | 
-         is.null(tissue_std_pk_file) | is.null(invitro_file)){
-        return(NULL)
-      }
-      
-      ## Clean efficacy file
-      ext <- tools::file_ext(efficacy_file$name)
-      file.rename(efficacy_file$datapath,
-                  paste(efficacy_file$datapath, ext, sep = "."))
-      efficacy_df <- read_excel(paste(efficacy_file$datapath, ext, sep = "."), sheet = 1)
-      efficacy_clean <- efficacy_function(efficacy_df)
-      efficacy_clean_summarized <- efficacy_summary_function(efficacy_clean)
-      
-      ## Clean plasma file
-      ext <- tools::file_ext(plasma_file$name)
-      file.rename(plasma_file$datapath,
-                  paste(plasma_file$datapath, ext, sep = "."))
-      plasma_df <- read_excel(paste(plasma_file$datapath, ext, sep = "."), sheet = 1)
-      plasma_clean <- plasma_function(plasma_df)
-      plasma_summarized <- plasma_summarize(plasma_clean)
-      
-      ## Clean laser file
-      ext <- tools::file_ext(tissue_laser_file$name)
-      file.rename(tissue_laser_file$datapath,
-                  paste(tissue_laser_file$datapath, ext, sep = "."))
-      tissue_laser_df <- read_excel(paste(tissue_laser_file$datapath, ext, sep = "."), sheet = 1)
-      tissue_laser_clean <- tissue_laser_function(tissue_laser_df)
-      tissue_laser_summarized <- tissue_laser_summary(tissue_laser_clean)
-      
-      ## Clean standard tissue file
-      ext <- tools::file_ext(tissue_std_pk_file$name)
-      file.rename(tissue_std_pk_file$datapath,
-                  paste(tissue_std_pk_file$datapath, ext, sep = "."))
-      tissue_std_pk_df <- read_excel(paste(tissue_std_pk_file$datapath, ext, sep = "."), sheet = 1)
-      tissue_std_pk_clean <- tissue_std_pk_function(tissue_std_pk_df)
-      tissue_std_pk_summarized <- tissue_std_pk_summarize(tissue_std_pk_clean)
-      
-      ## Clean in vitro file
-      ext <- tools::file_ext(invitro_file$name)
-      file.rename(invitro_file$datapath,
-                  paste(invitro_file$datapath, ext, sep = "."))
-      invitro_df <- read_excel(paste(invitro_file$datapath, ext, sep = "."), sheet = 1)
-      in_vitro_clean <- in_vitro_function(invitro_df)
-      
-      # Combine everything into the efficacy summary file
-      efficacy_summary_file <- create_summary_df(efficacy_clean_summarized,
-                                                 plasma_summarized,
-                                                 tissue_laser_summarized,
-                                                 tissue_std_pk_summarized,
-                                                 in_vitro_clean)
-      efficacy_summary_file
       
       # Make sure you don't show an error by trying to run code before a file's been uploaded
       if(is.null(efficacy_summary_file())){
@@ -687,7 +678,7 @@ server <- function(input, output) {
         return(NULL)
       }
       
-      in_vitro <- efficacy_summary_file() %>%
+      in_vivo <- efficacy_summary_file() %>%
         rename(Drugs = "drug") %>% 
         unite(dosage_interval, dosage:dose_int, sep = "")
       
