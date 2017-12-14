@@ -157,3 +157,42 @@ library(stats)
     
     in_vivo_SMplot 
     
+#####
+    
+    example_data <- efficacy_summary %>% 
+      select(drug, dosage, level, PLA, SLU, SLE, ULU, RIM, OCS, ICS) %>% 
+      unite(drug_dosing, drug, dosage, sep = "-") %>% 
+      filter(level == "Cmax") %>% 
+      gather(PLA:ICS, key = "ELEMENT", value = concentration) %>% 
+      mutate(ELEMENT = factor(ELEMENT, levels = c("PLA", "SLU", "SLE", "ULU", "RIM", "OCS", "ICS"),
+                              labels = c("PLA", "SLU", "SLE", "ULU", "RIM", "OCS", "ICS")),
+             ELEMENT = as.character(ELEMENT))
+    
+    mouse <- paste0("https://raw.githubusercontent.com/KatieKey/input_output_shiny_group/",
+                    "master/Shiny_App/ModelCoord.csv")
+    mouse <- read_csv(mouse) %>% 
+      dplyr::select("ELEMENT","HOLE","X","Y")
+      
+      mouse <- mouse %>% 
+      left_join(example_data, by = "ELEMENT")
+    
+    
+    #Plot drug distribution, facetted by drug_dosing
+    mouse_plot <- mouse %>% 
+      ggplot(aes(mapping = TRUE, x = X, y = Y, group = HOLE, 
+                 fill = concentration)) +
+      geom_polypath(rule = "evenodd") +
+      geom_path(colour = "black", size = .5) +
+      geom_segment(x=-6, y=-2, xend=-28, yend=12) +
+      geom_segment(x=-6, y=-4, xend=-28, yend=-12) +
+      theme_void() +
+      theme(legend.position = 'right') +
+      labs(title = "Biodistribution by drug and dosage", 
+           subtitle = "For plasma (mouse), standard lung (lungs), standard lesion (small lesion), uninvolved lung \n(box inset), lesion rim (inset), outer caseum (inset) and inner caseum (inset) concentrations \n", 
+           caption = paste("prepared ", Sys.Date() )) + 
+      coord_fixed()  +
+      scale_fill_viridis(option = "magma") + 
+      facet_wrap(~ drug_dosing)
+    
+    mouse_plot
+    
