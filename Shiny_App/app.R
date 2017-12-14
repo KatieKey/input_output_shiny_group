@@ -1133,10 +1133,12 @@ server <- function(input, output) {
                    fill = concentration)) +
         geom_polypath(rule = "evenodd") +
         geom_path(colour = "black", size = .5) +
+        geom_segment(x=-6, y=-2, xend=-28, yend=12) +
+        geom_segment(x=-6, y=-4, xend=-28, yend=-12) +
         theme_void() +
         theme(legend.position = 'right') +
         labs(title = "Biodistribution by drug and dosage", 
-             subtitle = "For plasma standard lung, and standard lesion concentrations \n") +
+             subtitle = "For plasma (mouse), standard lung (lungs), standard lesion (small lesion), uninvolved lung \n(box inset), lesion rim (inset), outer caseum (inset) and inner caseum (inset) concentrations \n") +
         coord_fixed()  +
         scale_fill_viridis(option = "magma") + 
         facet_wrap(~ drug_dosing)
