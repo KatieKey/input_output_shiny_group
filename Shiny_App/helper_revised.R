@@ -1,4 +1,4 @@
-# FUNCTIONS FOR CLEANING RAW DATA FILES
+# FUNCTIONS FROM GROUP 1 (input/output/shiny app)
 
 library(dplyr)
 
@@ -166,6 +166,7 @@ tissue_std_pk_summarize <- function(tissue_std_pk_clean){
 }
 
 ###### in_vitro_function cleans raw in_vitro data in Shiny app
+##Function written by Dr. Anderson
 in_vitro_function <- function(in_vitro_df){
   in_vitro_clean <- in_vitro_df %>% 
     rename(drug = Drug) %>% 
@@ -174,6 +175,7 @@ in_vitro_function <- function(in_vitro_df){
 }
 
 ###### create summary dataframe
+###Function written by Dr. Anderson
 create_summary_df <- function(efficacy_clean_summarized, 
                               plasma_summarized,
                               tissue_laser_summarized,
