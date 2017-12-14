@@ -1329,7 +1329,7 @@ server <- function(input, output) {
       
     if(input$variable == "ELU"){
       dataset <- efficacy_summary_file %>% 
-        select(-ESP) %>% 
+        select(-ESP) %>%  
         mutate(huPPB = as.numeric(huPPB), 
                muPPB = as.numeric(muPPB), 
                dosage = as.factor(dosage), 
